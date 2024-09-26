@@ -16,8 +16,9 @@ import (
 )
 
 type Config struct {
-	Host string
-	Port string
+	Host     string
+	Port     string
+	Postgres string
 }
 
 // No need to return error when you can't load the config
@@ -34,7 +35,8 @@ func Load() *Config {
 	}
 
 	return &Config{
-		Host: os.Getenv("HOST"),
-		Port: os.Getenv("PORT"),
+		Host:     os.Getenv("HOST"),
+		Port:     os.Getenv("PORT"),
+		Postgres: os.Getenv("POSTGRES"),
 	}
 }
