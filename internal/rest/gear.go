@@ -12,17 +12,19 @@ type GearUsecase interface {
 	GetGearList() ([]*domain.Gear, error)
 	GetGearByID(id string) (*domain.Gear, error)
 	AddGear(g *domain.AddGearForm) error
-	UpdateGear(g *domain.UpdateGearForm) error
+	UpdateGear(id string, g *domain.UpdateGearForm) error
 	DeleteGear(id string) error
 }
 
 type GearHandler struct {
 	uc GearUsecase
+	v  *validator.Validate
 }
 
-func NewGearHandler(e *echo.Echo, uc GearUsecase) {
+func NewGearHandler(e *echo.Echo, uc GearUsecase, v *validator.Validate) {
 	handler := &GearHandler{
 		uc,
+		v,
 	}
 
 	group := e.Group("gear")
@@ -81,8 +83,7 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 		})
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-	err = validate.Struct(body)
+	err = h.v.Struct(body)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
@@ -90,10 +91,26 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, body)
+	err = h.uc.AddGear(&body)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusCreated, "Created Gear")
 }
 
 func (h *GearHandler) UpdateGear(c echo.Context) error {
+	if hasID := c.QueryParams().Has("id"); !hasID {
+		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+			Message: "query param 'id' is required",
+		})
+	}
+
+	id := c.QueryParams().Get("id")
+
 	var body domain.UpdateGearForm
 	err := c.Bind(&body)
 
@@ -103,7 +120,15 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, body)
+	err = h.uc.UpdateGear(id, &body)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusCreated, "Updated gear")
 }
 
 func (h *GearHandler) DeleteGear(c echo.Context) error {

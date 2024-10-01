@@ -50,6 +50,8 @@ func (s *Server) Start() error {
 		return err
 	}
 
+	defer s.conn.Close(context.Background())
+
 	return nil
 }
 
