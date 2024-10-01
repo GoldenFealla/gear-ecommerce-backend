@@ -19,6 +19,8 @@ import (
 )
 
 const (
+	defaultHost    = "0.0.0.0"
+	defaultPort    = "8080"
 	defaultTimeout = 30
 )
 
@@ -33,13 +35,29 @@ type Config struct {
 // and you are not making a library
 func Load() *Config {
 	// Add env here
-	err := godotenv.Load()
+	godotenv.Load()
 
 	// Add json config here
 	//
 
-	if err != nil {
-		panic(err)
+	hostEnv := os.Getenv("HOST")
+
+	if hostEnv == "" {
+		log.Println("env HOST not found, using default Host")
+		hostEnv = defaultHost
+	}
+
+	portEnv := os.Getenv("PORT")
+
+	if portEnv == "" {
+		log.Println("env PORT not found, using default Host")
+		portEnv = defaultPort
+	}
+
+	posgreSQLEnv := os.Getenv("POSTGRES")
+
+	if posgreSQLEnv == "" {
+		log.Println("env POSTGRES not found")
 	}
 
 	timeoutStr := os.Getenv("CONTEXT_TIMEOUT")
@@ -53,9 +71,9 @@ func Load() *Config {
 	timeoutContext := time.Duration(timeout) * time.Second
 
 	return &Config{
-		Host:     os.Getenv("HOST"),
-		Port:     os.Getenv("PORT"),
-		Postgres: os.Getenv("POSTGRES"),
+		Host:     hostEnv,
+		Port:     portEnv,
+		Postgres: posgreSQLEnv,
 		Timeout:  timeoutContext,
 	}
 }
