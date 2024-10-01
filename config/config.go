@@ -33,7 +33,7 @@ type Config struct {
 // and you are not making a library
 func Load() *Config {
 	// Add env here
-	err := godotenv.Load("./config/.env")
+	err := godotenv.Load()
 
 	// Add json config here
 	//
