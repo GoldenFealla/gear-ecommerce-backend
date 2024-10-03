@@ -8,8 +8,11 @@ import (
 
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rbcervilla/redisstore/v9"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/goldenfealla/gear-manager/config"
 	"github.com/goldenfealla/gear-manager/internal/repository/postgres"
@@ -30,17 +33,17 @@ func main() {
 	defer conn.Close(context.Background())
 
 	// Connect to database Redis
-	// ropts, err := redis.ParseURL(c.Redis)
-	// if err != nil {
-	// 	log.Fatalln(err)
-	// }
-	// rdb := redis.NewClient(ropts)
+	ropts, err := redis.ParseURL(c.Redis)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	rdb := redis.NewClient(ropts)
 
 	// init Session Store
-	// store, err := redisstore.NewRedisStore(context.Background(), rdb)
-	// if err != nil {
-	// 	log.Fatal("failed to create redis store: ", err)
-	// }
+	store, err := redisstore.NewRedisStore(context.Background(), rdb)
+	if err != nil {
+		log.Fatal("failed to create redis store: ", err)
+	}
 
 	e := echo.New()
 
@@ -58,6 +61,7 @@ func main() {
 		CustomTimeFormat: "15:04:05 02/01/2006",
 		Format:           "time: ${time_custom} method=${method}, uri=${uri}, status=${status} latency=${latency} error=${error}\n",
 	}))
+	e.Use(session.Middleware(store))
 
 	// set up validator
 	v := validator.New(validator.WithRequiredStructEnabled())
