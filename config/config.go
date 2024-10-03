@@ -28,6 +28,7 @@ type Config struct {
 	Host     string
 	Port     string
 	Postgres string
+	Redis    string
 	Timeout  time.Duration
 }
 
@@ -60,6 +61,12 @@ func Load() *Config {
 		log.Println("env POSTGRES not found")
 	}
 
+	RedisEnv := os.Getenv("REDIS")
+
+	if RedisEnv == "" {
+		log.Println("env REDIS not found")
+	}
+
 	timeoutStr := os.Getenv("CONTEXT_TIMEOUT")
 	timeout, err := strconv.Atoi(timeoutStr)
 
@@ -74,6 +81,7 @@ func Load() *Config {
 		Host:     hostEnv,
 		Port:     portEnv,
 		Postgres: posgreSQLEnv,
+		Redis:    RedisEnv,
 		Timeout:  timeoutContext,
 	}
 }
