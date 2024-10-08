@@ -13,6 +13,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -25,11 +26,12 @@ const (
 )
 
 type Config struct {
-	Host     string
-	Port     string
-	Postgres string
-	Redis    string
-	Timeout  time.Duration
+	Host         string
+	Port         string
+	Postgres     string
+	Redis        string
+	Timeout      time.Duration
+	AllowOrigins []string
 }
 
 // No need to return error when you can't load the config
@@ -77,11 +79,15 @@ func Load() *Config {
 
 	timeoutContext := time.Duration(timeout) * time.Second
 
+	allowOriginsStr := os.Getenv("ALLOW_ORIGINS")
+	allowOrigins := strings.Split(allowOriginsStr, ";")
+
 	return &Config{
-		Host:     hostEnv,
-		Port:     portEnv,
-		Postgres: posgreSQLEnv,
-		Redis:    RedisEnv,
-		Timeout:  timeoutContext,
+		Host:         hostEnv,
+		Port:         portEnv,
+		Postgres:     posgreSQLEnv,
+		Redis:        RedisEnv,
+		Timeout:      timeoutContext,
+		AllowOrigins: allowOrigins,
 	}
 }
