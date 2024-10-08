@@ -51,6 +51,11 @@ func main() {
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowCredentials: true,
 		AllowOrigins:     c.AllowOrigins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTION"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Range", "X-Content-Range"},
+		Skipper:          middleware.DefaultSkipper,
+		MaxAge:           3600,
 	}))
 	e.Use(middleware.TimeoutWithConfig(middleware.TimeoutConfig{
 		Skipper:      middleware.DefaultSkipper,
