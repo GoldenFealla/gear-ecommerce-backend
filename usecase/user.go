@@ -28,33 +28,33 @@ func NewUserUsecase(r UserRepository) *UserUsecase {
 	}
 }
 
-func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) error {
+func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
 	existedUsername, err := u.r.CheckUsernameExist(ctx, f.Username)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if existedUsername {
-		return fmt.Errorf("username %v has already been used", f.Username)
+		return nil, fmt.Errorf("username %v has already been used", f.Username)
 	}
 
 	existedEmail, err := u.r.CheckEmailExist(ctx, f.Email)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if existedEmail {
-		return fmt.Errorf("email %v has already been used", f.Email)
+		return nil, fmt.Errorf("email %v has already been used", f.Email)
 	}
 
 	hashedPassword, err := password.Generate(f.Password)
 	if err != nil {
-		return fmt.Errorf("Error while hashing password")
+		return nil, fmt.Errorf("Error while hashing password")
 	}
 
 	user := &domain.User{
@@ -67,10 +67,14 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) error {
 	err = u.r.AddUser(ctx, user)
 
 	if err != nil {
-		return fmt.Errorf("Error while creating user. Detail: %v", err.Error())
+		return nil, fmt.Errorf("Error while creating user. Detail: %v", err.Error())
 	}
 
-	return nil
+	return &domain.UserInfo{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+	}, nil
 }
 
 func (u *UserUsecase) LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, error) {

@@ -67,7 +67,7 @@ func main() {
 	}))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		CustomTimeFormat: "15:04:05 02/01/2006",
-		Format:           "time: ${time_custom} method=${method}, uri=${uri}, status=${status} latency=${latency} error=${error}\n",
+		Format:           "time: ${time_custom}\tmethod=${method}\turi=${uri}\tstatus=${status}\tlatency=${latency}\terror=${error}\n",
 	}))
 	e.Use(session.Middleware(store))
 

@@ -10,6 +10,11 @@ type User struct {
 	Verified bool      `json:"verified" db:"verified"`
 }
 
+type UserCredential struct {
+	Message string `json:"message"`
+	Token   string `json:"token"`
+}
+
 type UserInfo struct {
 	ID       uuid.UUID `json:"id" db:"id"`
 	Username string    `json:"username" db:"username"`
