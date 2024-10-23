@@ -82,6 +82,15 @@ func Load() *Config {
 	allowOriginsStr := os.Getenv("ALLOW_ORIGINS")
 	allowOrigins := strings.Split(allowOriginsStr, ";")
 
+	if allowOriginsStr != "" {
+		log.Println("received ALLOW_ORIGINS env:")
+
+		for _, v := range allowOrigins {
+			log.Println(v)
+		}
+
+	}
+
 	return &Config{
 		Host:         hostEnv,
 		Port:         portEnv,

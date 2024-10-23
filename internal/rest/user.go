@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -29,13 +30,22 @@ func NewUserHandler(e *echo.Echo, uc UserUsecase, v *validator.Validate) {
 	}
 
 	group := e.Group("user")
-	group.Use(middleware.IsAuth)
-	group.GET("/refresh", handler.Refresh)
-	group.GET("/check", handler.Check)
-	group.GET("/logout", handler.Logout)
+	group.Use(middleware.AuthenticatedWithConfig(&middleware.AuthenticatedConfig{
+		Excludes: []string{
+			"/user/test",
+			"/user/login",
+		},
+	}))
+
 	group.GET("/test", handler.Test)
+
+	group.GET("/check", handler.Check)
+	group.GET("/refresh", handler.Refresh)
+
 	group.POST("/register", handler.Register)
+
 	group.POST("/login", handler.Login)
+	group.GET("/logout", handler.Logout)
 }
 
 func (h *UserHandler) Test(c echo.Context) error {
@@ -43,13 +53,19 @@ func (h *UserHandler) Test(c echo.Context) error {
 }
 
 func (h *UserHandler) Check(c echo.Context) error {
-	_, ok := c.Get("user").(*domain.UserInfo)
+	u, ok := c.Get("user").(*domain.UserInfo)
 
-	if !ok {
-		return c.JSON(http.StatusUnauthorized, false)
+	if u != nil && ok {
+		return c.JSON(http.StatusOK, &domain.Response{
+			Message: "OK",
+			Data:    u,
+		})
 	}
 
-	return c.JSON(http.StatusOK, true)
+	return c.JSON(http.StatusUnauthorized, &domain.Response{
+		Message: "Not log in",
+		Data:    nil,
+	})
 }
 
 func (h *UserHandler) Refresh(c echo.Context) error {
@@ -58,7 +74,7 @@ func (h *UserHandler) Refresh(c echo.Context) error {
 	refreshToken, err := jwt.GenerateRefreshToken(user)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -70,14 +86,17 @@ func (h *UserHandler) Refresh(c echo.Context) error {
 	accessToken, err := jwt.GenerateAccessToken(refreshToken)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusCreated, &domain.UserCredential{
+	return c.JSON(http.StatusCreated, &domain.Response{
 		Message: "Registered User",
-		Token:   accessToken,
+		Data: &domain.UserCredential{
+			Token:    accessToken,
+			UserInfo: user,
+		},
 	})
 }
 
@@ -86,7 +105,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	err := c.Bind(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -101,7 +120,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	info, err := h.uc.RegisterUser(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -109,7 +128,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	refreshToken, err := jwt.GenerateRefreshToken(info)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -121,23 +140,34 @@ func (h *UserHandler) Register(c echo.Context) error {
 	accessToken, err := jwt.GenerateAccessToken(refreshToken)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusCreated, &domain.UserCredential{
+	return c.JSON(http.StatusCreated, &domain.Response{
 		Message: "Registered User",
-		Token:   accessToken,
+		Data: &domain.UserCredential{
+			Token:    accessToken,
+			UserInfo: info,
+		},
 	})
 }
 
 func (h *UserHandler) Login(c echo.Context) error {
+	u, ok := c.Get("user").(*domain.UserInfo)
+
+	if u != nil && ok {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: "You already logged in",
+		})
+	}
+
 	var body domain.LoginUserForm
 	err := c.Bind(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -152,7 +182,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	user, err := h.uc.LoginUser(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -160,7 +190,7 @@ func (h *UserHandler) Login(c echo.Context) error {
 	refreshToken, err := jwt.GenerateRefreshToken(user)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -172,23 +202,28 @@ func (h *UserHandler) Login(c echo.Context) error {
 	accessToken, err := jwt.GenerateAccessToken(refreshToken)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusCreated, &domain.UserCredential{
+	return c.JSON(http.StatusCreated, &domain.Response{
 		Message: "Logged in User",
-		Token:   accessToken,
+		Data: &domain.UserCredential{
+			Token:    accessToken,
+			UserInfo: user,
+		},
 	})
 }
 
 func (h *UserHandler) Logout(c echo.Context) error {
+	fmt.Println("Logout")
 	err := session.DeleteSession(c)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
+			Data:    nil,
 		})
 	}
 

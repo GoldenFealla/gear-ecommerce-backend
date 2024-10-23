@@ -10,15 +10,15 @@ type User struct {
 	Verified bool      `json:"verified" db:"verified"`
 }
 
-type UserCredential struct {
-	Message string `json:"message"`
-	Token   string `json:"token"`
-}
-
 type UserInfo struct {
 	ID       uuid.UUID `json:"id" db:"id"`
 	Username string    `json:"username" db:"username"`
 	Email    string    `json:"email" db:"email"`
+}
+
+type UserCredential struct {
+	Token    string    `json:"token"`
+	UserInfo *UserInfo `json:"user"`
 }
 
 type RegisterUserForm struct {

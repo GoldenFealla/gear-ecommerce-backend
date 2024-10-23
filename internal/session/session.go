@@ -61,11 +61,11 @@ func DefaultSaveSession(c echo.Context, RefrestToken *string) error {
 
 	// session
 	sess.Options = &sessions.Options{
-		Secure:   true,
-		Path:     "/session",
+		Secure:   false,
+		Path:     "/",
 		HttpOnly: true,
 		MaxAge:   2592000,
-		SameSite: http.SameSiteDefaultMode,
+		SameSite: http.SameSiteStrictMode,
 	}
 
 	if RefrestToken != nil {
@@ -80,11 +80,11 @@ func DefaultSaveSession(c echo.Context, RefrestToken *string) error {
 
 	// expiration
 	exp.Options = &sessions.Options{
-		Secure:   true,
-		Path:     "/expire",
+		Secure:   false,
+		Path:     "/",
 		HttpOnly: false,
 		MaxAge:   2592000,
-		SameSite: http.SameSiteDefaultMode,
+		SameSite: http.SameSiteStrictMode,
 	}
 
 	err = exp.Save(c.Request(), c.Response())
@@ -108,7 +108,7 @@ func DeleteSession(c echo.Context) error {
 		Path:     "/session",
 		HttpOnly: true,
 		MaxAge:   -1,
-		SameSite: http.SameSiteDefaultMode,
+		SameSite: http.SameSiteStrictMode,
 	}
 
 	delete(sess.Values, "refresh_token")
@@ -130,7 +130,7 @@ func DeleteSession(c echo.Context) error {
 		Path:     "/expire",
 		HttpOnly: false,
 		MaxAge:   -1,
-		SameSite: http.SameSiteDefaultMode,
+		SameSite: http.SameSiteNoneMode,
 	}
 
 	err = exp.Save(c.Request(), c.Response())

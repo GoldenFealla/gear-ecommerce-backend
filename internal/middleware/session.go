@@ -1,51 +1,37 @@
 package middleware
 
 import (
+	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/goldenfealla/gear-manager/domain"
 	"github.com/goldenfealla/gear-manager/internal/session"
 	"github.com/labstack/echo/v4"
 )
 
-func IsAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userInfo, err := session.IsAuth(c)
-
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
-				Message: err.Error(),
-			})
-		}
-
-		if userInfo != nil {
-			c.Set("user", userInfo)
-			return next(c)
-		}
-
-		return c.JSON(http.StatusUnauthorized, &domain.ResponseError{
-			Message: "You are not logged in",
-		})
-	}
+type AuthenticatedConfig struct {
+	Excludes []string
 }
 
-func IsNotAuth(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		userInfo, err := session.IsAuth(c)
+func AuthenticatedWithConfig(co *AuthenticatedConfig) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Try to get user info first
+			userInfo, err := session.IsAuth(c)
 
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
-				Message: err.Error(),
+			if userInfo != nil {
+				c.Set("user", userInfo)
+				return next(c)
+			}
+
+			if slices.Contains(co.Excludes, c.Path()) {
+				return next(c)
+			}
+
+			return c.JSON(http.StatusUnauthorized, &domain.Response{
+				Message: fmt.Sprintf("You are not logged in. Detail: %v", err.Error()),
 			})
 		}
-
-		if userInfo != nil {
-			return c.JSON(http.StatusOK, &domain.ResponseError{
-				Message: "You are already logged in",
-				Data:    userInfo,
-			})
-		}
-
-		return next(c)
 	}
 }

@@ -45,7 +45,7 @@ func (h *GearHandler) GetGearList(c echo.Context) error {
 	result, err := h.uc.GetGearList()
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -55,7 +55,7 @@ func (h *GearHandler) GetGearList(c echo.Context) error {
 
 func (h *GearHandler) GetGearByID(c echo.Context) error {
 	if hasID := c.QueryParams().Has("id"); !hasID {
-		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: "query param 'id' is required",
 		})
 	}
@@ -65,7 +65,7 @@ func (h *GearHandler) GetGearByID(c echo.Context) error {
 	result, err := h.uc.GetGearByID(id)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -78,7 +78,7 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 	err := c.Bind(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -86,7 +86,7 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 	err = h.v.Struct(body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -94,7 +94,7 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 	err = h.uc.AddGear(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -104,7 +104,7 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 
 func (h *GearHandler) UpdateGear(c echo.Context) error {
 	if hasID := c.QueryParams().Has("id"); !hasID {
-		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: "query param 'id' is required",
 		})
 	}
@@ -115,7 +115,7 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 	err := c.Bind(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -123,7 +123,7 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 	err = h.uc.UpdateGear(id, &body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
@@ -133,7 +133,7 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 
 func (h *GearHandler) DeleteGear(c echo.Context) error {
 	if hasID := c.QueryParams().Has("id"); !hasID {
-		return c.JSON(http.StatusBadRequest, &domain.ResponseError{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: "query param 'id' is required",
 		})
 	}
@@ -143,12 +143,12 @@ func (h *GearHandler) DeleteGear(c echo.Context) error {
 	err := h.uc.DeleteGear(id)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.ResponseError{
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, &domain.ResponseError{
+	return c.JSON(http.StatusOK, &domain.Response{
 		Message: "Successfully delete document",
 	})
 }
