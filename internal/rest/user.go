@@ -121,7 +121,7 @@ func (h *UserHandler) Register(c echo.Context) error {
 	info, err := h.uc.RegisterUser(&body)
 
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, &domain.Response{
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: err.Error(),
 		})
 	}
