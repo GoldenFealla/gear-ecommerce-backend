@@ -34,6 +34,7 @@ func NewUserHandler(e *echo.Echo, uc UserUsecase, v *validator.Validate) {
 		Excludes: []string{
 			"/user/test",
 			"/user/login",
+			"/user/register",
 		},
 	}))
 
