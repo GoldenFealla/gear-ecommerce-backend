@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -218,7 +217,6 @@ func (h *UserHandler) Login(c echo.Context) error {
 }
 
 func (h *UserHandler) Logout(c echo.Context) error {
-	fmt.Println("Logout")
 	err := session.DeleteSession(c)
 
 	if err != nil {
