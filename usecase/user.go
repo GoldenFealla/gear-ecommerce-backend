@@ -11,7 +11,7 @@ import (
 )
 
 type UserRepository interface {
-	CheckUserIDExist(ctx context.Context, id string) (bool, error)
+	CheckIDExist(ctx context.Context, id string) (bool, error)
 	CheckEmailExist(ctx context.Context, email string) (bool, error)
 	CheckUsernameExist(ctx context.Context, username string) (bool, error)
 	CheckUsernameOrEmailExist(ctx context.Context, usernameOrEmail string) (bool, error)
@@ -117,7 +117,7 @@ func (u *UserUsecase) UpdateUser(id string, f *domain.UpdateUserForm) (*domain.U
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	existedUser, err := u.r.CheckUserIDExist(ctx, id)
+	existedUser, err := u.r.CheckIDExist(ctx, id)
 
 	if err != nil {
 		return nil, err

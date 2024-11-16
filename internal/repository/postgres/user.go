@@ -19,6 +19,24 @@ func NewUserRepository(conn *pgx.Conn) *UserRepository {
 	return &UserRepository{Conn: conn}
 }
 
+func (r *UserRepository) CheckIDExist(ctx context.Context, id string) (bool, error) {
+	query := `
+		SELECT EXISTS(SELECT 1 FROM "user" WHERE id=@id)
+	`
+	args := &pgx.NamedArgs{
+		"id": id,
+	}
+
+	var b bool
+	err := r.Conn.QueryRow(ctx, query, args).Scan(&b)
+
+	if err != nil {
+		return false, err
+	}
+
+	return b, nil
+}
+
 func (r *UserRepository) CheckEmailExist(ctx context.Context, e string) (bool, error) {
 	query := `
 		SELECT EXISTS(SELECT 1 FROM "user" WHERE email=@email)
