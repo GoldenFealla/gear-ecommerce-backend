@@ -42,9 +42,9 @@ type LoginUserForm struct {
 }
 
 type UpdateUserForm struct {
-	Username  string `json:"username" validate:"required,gte=6,lte=20"`
-	Email     string `json:"email" validate:"required,email"`
-	FirstName string `json:"first_name" validate:"required,gte=2,lte=30"`
-	LastName  string `json:"last_name" validate:"required,gte=2,lte=30"`
-	Phone     string `json:"phone" db:"phone" validate:"required"`
+	Username  *string `json:"username,omitempty" db:"username" validate:"omitempty,gte=6,lte=20"`
+	Email     *string `json:"email,omitempty" db:"email" validate:"omitempty,email"`
+	FirstName *string `json:"first_name,omitempty" db:"first_name" validate:"omitempty,gte=2,lte=30"`
+	LastName  *string `json:"last_name,omitempty" db:"last_name" validate:"omitempty,gte=2,lte=30"`
+	Phone     *string `json:"phone,omitempty" db:"phone"`
 }

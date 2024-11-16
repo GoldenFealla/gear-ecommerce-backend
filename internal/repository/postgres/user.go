@@ -206,11 +206,10 @@ func (r *UserRepository) UpdateUser(ctx context.Context, id string, u *domain.Up
 	fieldString := []string{}
 
 	for i := 0; i < v.NumField(); i++ {
-		field := typeOfG.Field(i).Name
+		field := typeOfG.Field(i).Tag.Get("db")
 		value := v.Field(i)
 
 		if !value.IsNil() {
-			args[field] = value.Elem()
 			fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, value.Elem()))
 		}
 	}
@@ -220,10 +219,12 @@ func (r *UserRepository) UpdateUser(ctx context.Context, id string, u *domain.Up
 	}
 
 	query := fmt.Sprintf(`
-		UPDATE user
-		SET %v
+		UPDATE "user" 
+		SET %v 
 		WHERE id=@id;
 	`, strings.Join(fieldString, ","))
+
+	fmt.Println(query)
 
 	_, err := r.Conn.Exec(ctx, query, args)
 

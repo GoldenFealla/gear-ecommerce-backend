@@ -251,7 +251,7 @@ func (h *UserHandler) Update(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, &domain.Response{
+	return c.JSON(http.StatusOK, &domain.Response{
 		Message: "Registered User",
 		Data:    info,
 	})
