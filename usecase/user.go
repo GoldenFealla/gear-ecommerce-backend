@@ -61,10 +61,13 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo
 	}
 
 	user := &domain.User{
-		ID:       uuid.New(),
-		Username: f.Username,
-		Email:    f.Email,
-		Password: hashedPassword,
+		ID:        uuid.New(),
+		Username:  f.Username,
+		Email:     f.Email,
+		FirstName: f.FirstName,
+		LastName:  f.LastName,
+		Phone:     f.Phone,
+		Password:  hashedPassword,
 	}
 
 	err = u.r.AddUser(ctx, user)
@@ -74,9 +77,12 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo
 	}
 
 	return &domain.UserInfo{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
 	}, nil
 }
 
@@ -107,9 +113,12 @@ func (u *UserUsecase) LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, erro
 	}
 
 	return &domain.UserInfo{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
 	}, nil
 }
 

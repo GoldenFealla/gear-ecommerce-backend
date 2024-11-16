@@ -168,7 +168,7 @@ func (r *UserRepository) AddUser(ctx context.Context, u *domain.User) error {
 				@userFirstName, 
 				@userLastName,
 				@userPhone,
-				@user@userPassword, 
+				@userPassword, 
 				@userVerified
 			)
 	`
