@@ -89,7 +89,7 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 	fieldString := []string{}
 
 	for i := 0; i < v.NumField(); i++ {
-		field := typeOfG.Field(i).Name
+		field := typeOfG.Field(i).Tag.Get("db")
 		value := v.Field(i)
 
 		if !value.IsNil() {

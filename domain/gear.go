@@ -20,9 +20,9 @@ type AddGearForm struct {
 }
 
 type UpdateGearForm struct {
-	Name     *string  `json:"name,omitempty"`
-	Type     *string  `json:"type,omitempty"`
-	Price    *float64 `json:"price,omitempty"`
-	Discount *float64 `json:"discount,omitempty"`
-	Quantity *int64   `json:"quantity,omitempty"`
+	Name     *string  `json:"name,omitempty" db:"name" validate:"omitempty,gte=2,lte=64"`
+	Type     *string  `json:"type,omitempty" db:"type" validate:"omitempty,gte=2,lte=32"`
+	Price    *float64 `json:"price,omitempty" db:"price" validate:"omitempty,gt=0"`
+	Discount *float64 `json:"discount,omitempty" db:"discount" validate:"omitempty,gt=0"`
+	Quantity *int64   `json:"quantity,omitempty" db:"quantity" validate:"omitempty,gt=0"`
 }
