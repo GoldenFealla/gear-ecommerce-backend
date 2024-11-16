@@ -11,11 +11,14 @@ import (
 )
 
 type UserRepository interface {
+	CheckUserIDExist(ctx context.Context, id string) (bool, error)
 	CheckEmailExist(ctx context.Context, email string) (bool, error)
 	CheckUsernameExist(ctx context.Context, username string) (bool, error)
 	CheckUsernameOrEmailExist(ctx context.Context, usernameOrEmail string) (bool, error)
+	GetUserByID(ctx context.Context, id string) (*domain.User, error)
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (*domain.User, error)
 	AddUser(ctx context.Context, user *domain.User) error
+	UpdateUser(ctx context.Context, id string, user *domain.UpdateUserForm) error
 }
 
 type UserUsecase struct {
@@ -107,5 +110,41 @@ func (u *UserUsecase) LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, erro
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
+	}, nil
+}
+
+func (u *UserUsecase) UpdateUser(id string, f *domain.UpdateUserForm) (*domain.UserInfo, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	existedUser, err := u.r.CheckUserIDExist(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if !existedUser {
+		return nil, fmt.Errorf("user not existed")
+	}
+
+	err = u.r.UpdateUser(ctx, id, f)
+
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := u.r.GetUserByID(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.UserInfo{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Phone:     user.Phone,
 	}, nil
 }

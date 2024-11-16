@@ -2,6 +2,10 @@ package postgres
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/goldenfealla/gear-manager/domain"
 	"github.com/jackc/pgx/v5"
@@ -70,6 +74,33 @@ func (r *UserRepository) CheckUsernameOrEmailExist(ctx context.Context, unoe str
 	return b, nil
 }
 
+func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*domain.User, error) {
+	query := `
+		SELECT id, username, email, first_name, last_name, phone, password, verified FROM "user" WHERE id=@id
+	`
+	args := &pgx.NamedArgs{
+		"id": id,
+	}
+
+	var user domain.User
+	err := r.Conn.QueryRow(ctx, query, args).Scan(
+		&user.ID,
+		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Phone,
+		&user.Password,
+		&user.Verified,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
 func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, unoe string) (*domain.User, error) {
 	query := `
 		SELECT id, email, username, password, verified FROM "user" WHERE (email=@email OR username=@username)
@@ -117,4 +148,44 @@ func (r *UserRepository) AddUser(ctx context.Context, u *domain.User) error {
 
 	return nil
 
+}
+
+func (r *UserRepository) UpdateUser(ctx context.Context, id string, u *domain.UpdateUserForm) error {
+	args := pgx.NamedArgs{
+		"id": id,
+	}
+
+	// iterate through struct to get field need to update
+	v := reflect.ValueOf(*u)
+	typeOfG := v.Type()
+
+	fieldString := []string{}
+
+	for i := 0; i < v.NumField(); i++ {
+		field := typeOfG.Field(i).Name
+		value := v.Field(i)
+
+		if !value.IsNil() {
+			args[field] = value.Elem()
+			fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, value.Elem()))
+		}
+	}
+
+	if len(fieldString) == 0 {
+		return errors.New("field to update is required")
+	}
+
+	query := fmt.Sprintf(`
+		UPDATE user
+		SET %v
+		WHERE id=@id;
+	`, strings.Join(fieldString, ","))
+
+	_, err := r.Conn.Exec(ctx, query, args)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

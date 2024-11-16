@@ -15,6 +15,7 @@ import (
 type UserUsecase interface {
 	RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo, error)
 	LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, error)
+	UpdateUser(id string, f *domain.UpdateUserForm) (*domain.UserInfo, error)
 }
 
 type UserHandler struct {
@@ -43,6 +44,7 @@ func NewUserHandler(e *echo.Echo, uc UserUsecase, v *validator.Validate) {
 	group.GET("/refresh", handler.Refresh)
 
 	group.POST("/register", handler.Register)
+	group.PUT("/update", handler.Update)
 
 	group.POST("/login", handler.Login)
 	group.GET("/logout", handler.Logout)
@@ -213,6 +215,45 @@ func (h *UserHandler) Login(c echo.Context) error {
 			Token:    accessToken,
 			UserInfo: user,
 		},
+	})
+}
+
+func (h *UserHandler) Update(c echo.Context) error {
+	if hasID := c.QueryParams().Has("id"); !hasID {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: "query param 'id' is required",
+		})
+	}
+
+	id := c.QueryParams().Get("id")
+
+	var body domain.UpdateUserForm
+	err := c.Bind(&body)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	err = h.v.Struct(body)
+
+	if err != nil {
+		ves := validation.GetValidationError(err.(validator.ValidationErrors))
+		return c.JSON(http.StatusBadRequest, ves)
+	}
+
+	info, err := h.uc.UpdateUser(id, &body)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusCreated, &domain.Response{
+		Message: "Registered User",
+		Data:    info,
 	})
 }
 

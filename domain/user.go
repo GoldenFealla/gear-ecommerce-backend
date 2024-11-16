@@ -40,3 +40,11 @@ type LoginUserForm struct {
 	UsernameOrEmail string `json:"username_or_email" validate:"required"`
 	Password        string `json:"password" validate:"required,gte=8,lte=24"`
 }
+
+type UpdateUserForm struct {
+	Username  string `json:"username" validate:"required,gte=6,lte=20"`
+	Email     string `json:"email" validate:"required,email"`
+	FirstName string `json:"first_name" validate:"required,gte=2,lte=30"`
+	LastName  string `json:"last_name" validate:"required,gte=2,lte=30"`
+	Phone     string `json:"phone" db:"phone" validate:"required"`
+}
