@@ -103,7 +103,7 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*domain.Us
 
 func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, unoe string) (*domain.User, error) {
 	query := `
-		SELECT id, email, username, password, verified FROM "user" WHERE (email=@email OR username=@username)
+		SELECT id, username, email, first_name, last_name, phone, password, verified FROM "user" WHERE (email=@email OR username=@username)
 	`
 	args := &pgx.NamedArgs{
 		"email":    unoe,
@@ -113,8 +113,11 @@ func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, unoe string) 
 	var user domain.User
 	err := r.Conn.QueryRow(ctx, query, args).Scan(
 		&user.ID,
-		&user.Email,
 		&user.Username,
+		&user.Email,
+		&user.FirstName,
+		&user.LastName,
+		&user.Phone,
 		&user.Password,
 		&user.Verified,
 	)
@@ -128,16 +131,39 @@ func (r *UserRepository) GetByUsernameOrEmail(ctx context.Context, unoe string) 
 
 func (r *UserRepository) AddUser(ctx context.Context, u *domain.User) error {
 	query := `
-		INSERT INTO "user" (id, username, email, password, verified)
-		VALUES (@userID, @username, @userEmail, @userPassword, @userVerified)
+		INSERT INTO "user" 
+			(
+				id, 
+				username, 
+				email, 
+				first_name, 
+				last_name, 
+				phone, 
+				password, 
+				verified
+			)
+		VALUES 
+			(
+				@userID, 
+				@username, 
+				@userEmail, 
+				@userFirstName, 
+				@userLastName,
+				@userPhone,
+				@user@userPassword, 
+				@userVerified
+			)
 	`
 
 	args := &pgx.NamedArgs{
-		"userID":       u.ID,
-		"username":     u.Username,
-		"userEmail":    u.Email,
-		"userPassword": u.Password,
-		"userVerified": false,
+		"userID":        u.ID,
+		"username":      u.Username,
+		"userEmail":     u.Email,
+		"userFirstName": u.FirstName,
+		"userLastName":  u.LastName,
+		"userPhone":     u.Phone,
+		"userPassword":  u.Password,
+		"userVerified":  false,
 	}
 
 	_, err := r.Conn.Exec(ctx, query, args)
