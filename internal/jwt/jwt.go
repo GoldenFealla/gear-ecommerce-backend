@@ -84,11 +84,15 @@ func ValidateRefreshToken(token string) (jwt.MapClaims, error) {
 }
 
 func GenerateRefreshToken(u *domain.UserInfo) (string, error) {
+	// TODO: interate through UserInfo and use the json tag
 	// 30 days
 	return generate(map[string]interface{}{
-		"id":       u.ID,
-		"username": u.Username,
-		"email":    u.Email,
+		"id":         u.ID,
+		"username":   u.Username,
+		"email":      u.Email,
+		"first_name": u.FirstName,
+		"last_name":  u.LastName,
+		"phone":      u.Phone,
 	}, REFRESH_TOKEN_SECRET, time.Second*2592000)
 }
 
@@ -99,10 +103,14 @@ func GenerateAccessToken(rt RefrestToken) (string, error) {
 		return "", err
 	}
 
+	// TODO: interate through UserInfo and use the json tag
 	// 5 mins
 	return generate(map[string]interface{}{
-		"username": claims["username"],
-		"email":    claims["email"],
+		"username":   claims["username"],
+		"email":      claims["email"],
+		"first_name": claims["first_name"],
+		"last_name":  claims["last_name"],
+		"phone":      claims["phone"],
 	}, ACCESS_TOKEN_SECRET, time.Second*300)
 }
 

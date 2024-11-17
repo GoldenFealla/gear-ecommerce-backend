@@ -32,7 +32,7 @@ type RegisterUserForm struct {
 	Email     string `json:"email" validate:"required,email"`
 	FirstName string `json:"first_name" db:"first_name" validate:"required,gte=2,lte=30"`
 	LastName  string `json:"last_name" db:"last_name" validate:"required,gte=2,lte=30"`
-	Phone     string `json:"phone" db:"phone" validate:"required"`
+	Phone     string `json:"phone" db:"phone" validate:"required,gte=0"`
 	Password  string `json:"password" validate:"required,gte=8,lte=24"`
 }
 

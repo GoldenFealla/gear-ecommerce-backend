@@ -38,9 +38,12 @@ func IsAuth(c echo.Context) (*domain.UserInfo, error) {
 	}
 
 	ui := &domain.UserInfo{
-		ID:       uid,
-		Username: claims["username"].(string),
-		Email:    claims["email"].(string),
+		ID:        uid,
+		Username:  claims["username"].(string),
+		Email:     claims["email"].(string),
+		FirstName: claims["first_name"].(string),
+		LastName:  claims["last_name"].(string),
+		Phone:     claims["phone"].(string),
 	}
 
 	return ui, nil
