@@ -50,7 +50,10 @@ func (h *GearHandler) GetGearList(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, result)
+	return c.JSON(http.StatusOK, &domain.Response{
+		Message: "OK",
+		Data:    result,
+	})
 }
 
 func (h *GearHandler) GetGearByID(c echo.Context) error {
@@ -70,7 +73,10 @@ func (h *GearHandler) GetGearByID(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusOK, result)
+	return c.JSON(http.StatusOK, &domain.Response{
+		Message: "OK",
+		Data:    result,
+	})
 }
 
 func (h *GearHandler) AddGear(c echo.Context) error {
@@ -99,7 +105,9 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, "Created Gear")
+	return c.JSON(http.StatusCreated, &domain.Response{
+		Message: "Created Gear",
+	})
 }
 
 func (h *GearHandler) UpdateGear(c echo.Context) error {
@@ -128,7 +136,9 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 		})
 	}
 
-	return c.JSON(http.StatusCreated, "Updated gear")
+	return c.JSON(http.StatusCreated, &domain.Response{
+		Message: "Updated gear",
+	})
 }
 
 func (h *GearHandler) DeleteGear(c echo.Context) error {
