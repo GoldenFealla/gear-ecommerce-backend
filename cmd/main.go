@@ -77,14 +77,17 @@ func main() {
 	// Build Repository
 	gr := postgres.NewGearRepository(conn)
 	ur := postgres.NewUserRepository(conn)
+	ar := postgres.NewAddressRepository(conn)
 
 	// Build Usecase
 	gu := usecase.NewGearUsecase(gr)
 	uu := usecase.NewUserUsecase(ur)
+	au := usecase.NewAddressUsecase(ar)
 
 	// Build Handler
 	rest.NewUserHandler(e, uu, v)
 	rest.NewGearHandler(e, gu, v)
+	rest.NewAddressHandler(e, au, v)
 
 	err = e.Start(fmt.Sprintf("%v:%v", c.Host, c.Port))
 	if err != nil {
