@@ -62,18 +62,15 @@ func (r *AddressRepository) GetAddressList(ctx context.Context, userID string) (
 
 func (r *AddressRepository) AddAddress(ctx context.Context, userID string, a *domain.AddAddressForm) error {
 	query := `
-		INSERT INTO address (id, street, region, city, postal, country, user_id) 
-		VALUES (@id, @street, @region, @city, @postal, @country, @user_id)
+		INSERT INTO address (id, address, country, user_id) 
+		VALUES (@id, @address, @country, @user_id)
 	`
 
 	newUUID := uuid.New()
 
 	args := pgx.NamedArgs{
 		"id":      newUUID,
-		"street":  a.Street,
-		"region":  a.Region,
-		"city":    a.City,
-		"postal":  a.Postal,
+		"address": a.Address,
 		"country": a.Country,
 		"user_id": userID,
 	}
