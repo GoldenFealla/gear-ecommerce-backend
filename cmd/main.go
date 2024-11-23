@@ -6,6 +6,10 @@ import (
 	"log"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	s3config "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo-contrib/session"
@@ -44,6 +48,27 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to create redis store: ", err)
 	}
+
+	// init S3 storage
+	cfg, err := s3config.LoadDefaultConfig(context.TODO(),
+		s3config.WithCredentialsProvider(
+			credentials.NewStaticCredentialsProvider(
+				c.S3.AccountKeyID,
+				c.S3.AccountKeySecret,
+				"",
+			)),
+		s3config.WithRegion("auto"),
+	)
+
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	_ = s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.BaseEndpoint = aws.String(
+			fmt.Sprintf("https://%s.r2.cloudflarestorage.com", c.S3.AccountID),
+		)
+	})
 
 	e := echo.New()
 

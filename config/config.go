@@ -25,12 +25,19 @@ const (
 	defaultTimeout = 30
 )
 
+type S3Config struct {
+	AccountID        string
+	AccountKeyID     string
+	AccountKeySecret string
+}
+
 type Config struct {
 	Host         string
 	Port         string
 	Postgres     string
 	Redis        string
 	Timeout      time.Duration
+	S3           *S3Config
 	AllowOrigins []string
 }
 
@@ -60,13 +67,13 @@ func Load() *Config {
 	posgreSQLEnv := os.Getenv("POSTGRES")
 
 	if posgreSQLEnv == "" {
-		log.Println("env POSTGRES not found")
+		log.Fatalln("env POSTGRES not found")
 	}
 
 	RedisEnv := os.Getenv("REDIS")
 
 	if RedisEnv == "" {
-		log.Println("env REDIS not found")
+		log.Fatalln("env REDIS not found")
 	}
 
 	timeoutStr := os.Getenv("CONTEXT_TIMEOUT")
@@ -91,12 +98,33 @@ func Load() *Config {
 
 	}
 
+	S3AccountID := os.Getenv("S3_ACCOUNT_ID")
+	S3AccountKeyID := os.Getenv("S3_ACCOUNT_KEY_ID")
+	S3AccountKeySecret := os.Getenv("S3_ACCOUNT_KEY_SECRET")
+
+	if S3AccountID == "" {
+		log.Fatalln("S3_ACCOUNT_ID not found, Please add one")
+	}
+
+	if S3AccountKeyID == "" {
+		log.Fatalln("S3_ACCOUNT_KEY_ID not found, Please add one")
+	}
+
+	if S3AccountKeySecret == "" {
+		log.Fatalln("S3_ACCOUNT_KEY_SECRET not found, Please add one")
+	}
+
 	return &Config{
-		Host:         hostEnv,
-		Port:         portEnv,
-		Postgres:     posgreSQLEnv,
-		Redis:        RedisEnv,
-		Timeout:      timeoutContext,
+		Host:     hostEnv,
+		Port:     portEnv,
+		Postgres: posgreSQLEnv,
+		Redis:    RedisEnv,
+		Timeout:  timeoutContext,
+		S3: &S3Config{
+			AccountID:        S3AccountID,
+			AccountKeyID:     S3AccountKeyID,
+			AccountKeySecret: S3AccountKeySecret,
+		},
 		AllowOrigins: allowOrigins,
 	}
 }
