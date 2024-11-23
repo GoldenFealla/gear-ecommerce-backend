@@ -64,7 +64,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	_ = s3.NewFromConfig(cfg, func(o *s3.Options) {
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(
 			fmt.Sprintf("https://%s.r2.cloudflarestorage.com", c.S3.AccountID),
 		)
@@ -100,7 +100,7 @@ func main() {
 	v := validator.New(validator.WithRequiredStructEnabled())
 
 	// Build Repository
-	gr := postgres.NewGearRepository(conn)
+	gr := postgres.NewGearRepository(conn, s3Client)
 	ur := postgres.NewUserRepository(conn)
 	ar := postgres.NewAddressRepository(conn)
 

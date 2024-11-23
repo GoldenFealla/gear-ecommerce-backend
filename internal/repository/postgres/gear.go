@@ -7,17 +7,20 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/goldenfealla/gear-manager/domain"
+	f "github.com/goldenfealla/gear-manager/internal/file"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 )
 
 type GearRepository struct {
-	Conn *pgx.Conn
+	Conn     *pgx.Conn
+	S3Client *s3.Client
 }
 
-func NewGearRepository(conn *pgx.Conn) *GearRepository {
-	return &GearRepository{Conn: conn}
+func NewGearRepository(conn *pgx.Conn, s3Client *s3.Client) *GearRepository {
+	return &GearRepository{Conn: conn, S3Client: s3Client}
 }
 
 func (r *GearRepository) GetGearList(ctx context.Context) ([]*domain.Gear, error) {
@@ -53,8 +56,8 @@ func (r *GearRepository) GetGearByID(ctx context.Context, id string) (*domain.Ge
 
 func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) error {
 	query := `
-		INSERT INTO gear (id, name, type, price, discount, quantity) 
-		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity)
+		INSERT INTO gear (id, name, type, price, discount, quantity, image_url) 
+		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL)
 	`
 
 	newUUID := uuid.New()
@@ -66,6 +69,17 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		"gearPrice":    g.Price,
 		"gearDiscount": g.Discount,
 		"gearQuantity": g.Quantity,
+		"gearImageURL": "",
+	}
+
+	if g.ImageBase64 != nil {
+		image_url, err := f.UploadImage(r.S3Client, *g.ImageBase64, newUUID.String())
+
+		if err != nil {
+			return err
+		}
+
+		args["gearImageURL"] = *image_url
 	}
 
 	_, err := r.Conn.Exec(ctx, query, args)
