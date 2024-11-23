@@ -73,7 +73,11 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 	}
 
 	if g.ImageBase64 != nil {
-		image_url, err := f.UploadImage(r.S3Client, *g.ImageBase64, newUUID.String())
+		image_url, err := f.UploadImageJpeg(
+			r.S3Client,
+			*g.ImageBase64,
+			fmt.Sprintf("%v.jpg", newUUID.String()),
+		)
 
 		if err != nil {
 			return err

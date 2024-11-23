@@ -21,7 +21,7 @@ import (
 
 const BUCKET_NAME = "gear-ecommerce"
 
-func UploadImage(client *s3.Client, base64 string, fileName string) (*string, error) {
+func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string, error) {
 	// convert base64 to image
 	imgReader := b64.NewDecoder(b64.StdEncoding, strings.NewReader(base64))
 	img, _, err := image.Decode(imgReader)
