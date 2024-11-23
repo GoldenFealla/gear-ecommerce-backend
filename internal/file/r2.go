@@ -46,7 +46,7 @@ func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(BUCKET_NAME),
 		Body:        &jpegImage,
-		Key:         aws.String(fileName),
+		Key:         aws.String(fmt.Sprintf("images/%v", fileName)),
 		ContentType: aws.String("image"),
 	})
 
