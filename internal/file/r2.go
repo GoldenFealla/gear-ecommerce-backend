@@ -20,6 +20,7 @@ import (
 )
 
 const BUCKET_NAME = "gear-ecommerce"
+const IMAGE_LOCATION = "image-gear-ecommerce.goldenfealla.dev"
 
 func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string, error) {
 	// convert base64 to image
@@ -46,7 +47,7 @@ func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string
 	_, err = client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:      aws.String(BUCKET_NAME),
 		Body:        &jpegImage,
-		Key:         aws.String(fmt.Sprintf("images/%v", fileName)),
+		Key:         aws.String(fmt.Sprintf("image/%v", fileName)),
 		ContentType: aws.String("image"),
 	})
 
@@ -54,7 +55,7 @@ func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string
 		return nil, err
 	}
 
-	publicURL := fmt.Sprintf("image.gear-ecommerce.goldenfealla.dev/%v", fileName)
+	publicURL := fmt.Sprintf("%v/%v", IMAGE_LOCATION, fileName)
 
 	return &publicURL, nil
 }

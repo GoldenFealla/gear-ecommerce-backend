@@ -65,7 +65,7 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 	args := pgx.NamedArgs{
 		"gearID":       newUUID,
 		"gearName":     g.Name,
-		"gearType":     g.Type,
+		"gearType":     domain.GearTypeMap[g.Type],
 		"gearPrice":    g.Price,
 		"gearDiscount": g.Discount,
 		"gearQuantity": g.Quantity,
@@ -111,8 +111,16 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 		value := v.Field(i)
 
 		if !value.IsNil() {
-			args[field] = value.Elem()
-			fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, value.Elem()))
+			if field == "type" {
+				val := domain.GearTypeMap[value.Elem().String()]
+				args[field] = val
+				fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, val))
+			}
+
+			if field != "type" {
+				args[field] = value.Elem()
+				fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, value.Elem()))
+			}
 		}
 	}
 

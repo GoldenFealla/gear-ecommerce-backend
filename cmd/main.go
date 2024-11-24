@@ -21,6 +21,7 @@ import (
 	"github.com/goldenfealla/gear-manager/config"
 	"github.com/goldenfealla/gear-manager/internal/repository/postgres"
 	"github.com/goldenfealla/gear-manager/internal/rest"
+	"github.com/goldenfealla/gear-manager/internal/validation"
 	"github.com/goldenfealla/gear-manager/usecase"
 )
 
@@ -98,6 +99,7 @@ func main() {
 
 	// set up validator
 	v := validator.New(validator.WithRequiredStructEnabled())
+	v.RegisterValidation("is-gear", validation.ValidateIsGear)
 
 	// Build Repository
 	gr := postgres.NewGearRepository(conn, s3Client)
