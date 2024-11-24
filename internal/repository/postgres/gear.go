@@ -60,7 +60,11 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL)
 	`
 
-	newUUID := uuid.New()
+	newUUID, err := uuid.NewV7()
+
+	if err != nil {
+		return err
+	}
 
 	args := pgx.NamedArgs{
 		"gearID":       newUUID,
@@ -86,7 +90,7 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		args["gearImageURL"] = *image_url
 	}
 
-	_, err := r.Conn.Exec(ctx, query, args)
+	_, err = r.Conn.Exec(ctx, query, args)
 
 	if err != nil {
 		return err
