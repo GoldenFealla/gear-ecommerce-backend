@@ -55,7 +55,7 @@ func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string
 		return nil, err
 	}
 
-	publicURL := fmt.Sprintf("%v/image/%v", IMAGE_LOCATION, fileName)
+	publicURL := fmt.Sprintf("https://%v/image/%v", IMAGE_LOCATION, fileName)
 
 	return &publicURL, nil
 }
