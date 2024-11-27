@@ -24,7 +24,7 @@ func NewGearRepository(conn *pgx.Conn, s3Client *s3.Client) *GearRepository {
 }
 
 func (r *GearRepository) GetGearList(ctx context.Context) ([]*domain.Gear, error) {
-	rows, _ := r.Conn.Query(ctx, "SELECT id, name, type, price, discount, quantity FROM gear")
+	rows, _ := r.Conn.Query(ctx, "SELECT * FROM gear")
 
 	gears, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[domain.Gear])
 
@@ -37,7 +37,7 @@ func (r *GearRepository) GetGearList(ctx context.Context) ([]*domain.Gear, error
 
 func (r *GearRepository) GetGearByID(ctx context.Context, id string) (*domain.Gear, error) {
 	query := `
-		SELECT id, name, type, price, discount, quantity FROM gear WHERE id=@id
+		SELECT * FROM gear WHERE id=@id
 	`
 	args := pgx.NamedArgs{
 		"id": id,
@@ -56,8 +56,8 @@ func (r *GearRepository) GetGearByID(ctx context.Context, id string) (*domain.Ge
 
 func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) error {
 	query := `
-		INSERT INTO gear (id, name, type, price, discount, quantity, image_url) 
-		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL)
+		INSERT INTO gear (id, name, type, price, discount, quantity, image_url, brand) 
+		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL, @gearBrand)
 	`
 
 	newUUID, err := uuid.NewV7()
@@ -74,6 +74,7 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		"gearDiscount": g.Discount,
 		"gearQuantity": g.Quantity,
 		"gearImageURL": "",
+		"gearBrand":    g.Brand,
 	}
 
 	if g.ImageBase64 != nil {

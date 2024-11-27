@@ -30,7 +30,7 @@ func UploadImageJpeg(client *s3.Client, base64 string, fileName string) (*string
 		return nil, err
 	}
 
-	resizeImage := imaging.Resize(img, 200, 0, imaging.Lanczos)
+	resizeImage := imaging.Resize(img, 1000, 0, imaging.Lanczos)
 
 	var jpegImage bytes.Buffer
 
