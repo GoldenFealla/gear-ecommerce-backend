@@ -30,14 +30,15 @@ func main() {
 	c := config.Load()
 
 	// Connect to database PostgreSQL
+	log.Println("Connecting to Postgres")
 	conn, err := pgx.Connect(context.Background(), c.Postgres)
-
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer conn.Close(context.Background())
 
 	// Connect to database Redis
+	log.Println("Connecting to Redis")
 	ropts, err := redis.ParseURL(c.Redis)
 	if err != nil {
 		log.Fatalln(err)
@@ -65,6 +66,7 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	log.Println("Connecting to R2 Cloudflare")
 	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
 		o.BaseEndpoint = aws.String(
 			fmt.Sprintf("https://%s.r2.cloudflarestorage.com", c.S3.AccountID),

@@ -9,6 +9,7 @@ import (
 )
 
 type GearUsecase interface {
+	GetGearBrandList(category string) ([]string, error)
 	GetGearList() ([]*domain.Gear, error)
 	GetGearByID(id string) (*domain.Gear, error)
 	AddGear(g *domain.AddGearForm) error
@@ -31,6 +32,7 @@ func NewGearHandler(e *echo.Echo, uc GearUsecase, v *validator.Validate) {
 
 	group.GET("/test", handler.Test)
 	group.GET("/", handler.GetGearByID)
+	group.GET("/list-brand", handler.GetGearBrandList)
 	group.GET("/list", handler.GetGearList)
 	group.POST("/create", handler.AddGear)
 	group.PUT("/update", handler.UpdateGear)
@@ -39,6 +41,30 @@ func NewGearHandler(e *echo.Echo, uc GearUsecase, v *validator.Validate) {
 
 func (h *GearHandler) Test(c echo.Context) error {
 	return c.JSON(http.StatusOK, "Test gear Ok")
+}
+
+func (h *GearHandler) GetGearBrandList(c echo.Context) error {
+	if hasCategory := c.QueryParams().Has("category"); !hasCategory {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: "query param 'category' is required",
+		})
+	}
+
+	category := c.QueryParams().Get("category")
+
+	result, err := h.uc.GetGearBrandList(category)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, &domain.Response{
+		Message: "OK",
+		Data:    result,
+	})
+
 }
 
 func (h *GearHandler) GetGearList(c echo.Context) error {

@@ -51,7 +51,6 @@ func Load() *Config {
 	//
 
 	hostEnv := os.Getenv("HOST")
-
 	if hostEnv == "" {
 		log.Println("env HOST not found, using default Host")
 		hostEnv = defaultHost

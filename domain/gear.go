@@ -3,16 +3,16 @@ package domain
 import "github.com/google/uuid"
 
 var GearTypeMap map[string]string = map[string]string{
-	"PC":        "PERSONAL_COMPUTER",
-	"Laptop":    "LAPTOP",
-	"MainBoard": "MAINBOARD",
-	"CPU":       "CENTRAL_PROCESSING_UNIT",
-	"GPU":       "GRAPHICS_PROCESSING_UNIT",
-	"PSU":       "POWER_SUPPLY_UNIT",
-	"RAM":       "RANDOM_ACCESS_MEMORY",
-	"Fan":       "FAN",
-	"Storage":   "STORAGE",
-	"Monitor":   "MONITOR",
+	"pc":        "PERSONAL_COMPUTER",
+	"laptop":    "LAPTOP",
+	"mainboard": "MAINBOARD",
+	"cpu":       "CENTRAL_PROCESSING_UNIT",
+	"gpu":       "GRAPHICS_PROCESSING_UNIT",
+	"psu":       "POWER_SUPPLY_UNIT",
+	"ram":       "RANDOM_ACCESS_MEMORY",
+	"fan":       "FAN",
+	"storage":   "STORAGE",
+	"monitor":   "MONITOR",
 }
 
 type Gear struct {

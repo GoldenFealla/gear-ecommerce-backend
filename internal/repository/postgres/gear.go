@@ -23,6 +23,41 @@ func NewGearRepository(conn *pgx.Conn, s3Client *s3.Client) *GearRepository {
 	return &GearRepository{Conn: conn, S3Client: s3Client}
 }
 
+func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) ([]string, error) {
+	query := `SELECT DISTINCT brand FROM gear WHERE type=@type`
+
+	key := strings.ToLower(category)
+
+	if _, ok := domain.GearTypeMap[key]; !ok {
+		return nil, errors.New("category not exist")
+	}
+
+	args := pgx.NamedArgs{
+		"type": domain.GearTypeMap[key],
+	}
+
+	rows, _ := r.Conn.Query(ctx, query, args)
+
+	type Brand struct {
+		Brand string `db:"brand"`
+	}
+
+	brands, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[Brand])
+
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(brands)
+	result := make([]string, n)
+
+	for i := 0; i < n; i++ {
+		result[i] = brands[i].Brand
+	}
+
+	return result, err
+}
+
 func (r *GearRepository) GetGearList(ctx context.Context) ([]*domain.Gear, error) {
 	rows, _ := r.Conn.Query(ctx, "SELECT * FROM gear")
 
@@ -66,10 +101,12 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		return err
 	}
 
+	key := strings.ToLower(g.Type)
+
 	args := pgx.NamedArgs{
 		"gearID":       newUUID,
 		"gearName":     g.Name,
-		"gearType":     domain.GearTypeMap[g.Type],
+		"gearType":     domain.GearTypeMap[key],
 		"gearPrice":    g.Price,
 		"gearDiscount": g.Discount,
 		"gearQuantity": g.Quantity,

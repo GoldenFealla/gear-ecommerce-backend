@@ -8,6 +8,7 @@ import (
 )
 
 type GearRepository interface {
+	GetGearBrandList(ctx context.Context, category string) ([]string, error)
 	GetGearList(ctx context.Context) ([]*domain.Gear, error)
 	GetGearByID(ctx context.Context, id string) (*domain.Gear, error)
 	AddGear(ctx context.Context, g *domain.AddGearForm) error
@@ -23,6 +24,19 @@ func NewGearUsecase(r GearRepository) *GearUsecase {
 	return &GearUsecase{
 		r,
 	}
+}
+
+func (u *GearUsecase) GetGearBrandList(category string) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+
+	result, err := u.r.GetGearBrandList(ctx, category)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return result, err
 }
 
 func (u *GearUsecase) GetGearList() ([]*domain.Gear, error) {
