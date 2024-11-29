@@ -102,8 +102,6 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 		)
 	}
 
-	fmt.Println(query)
-
 	rows, _ := r.Conn.Query(ctx, query, args)
 
 	gears, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[domain.Gear])
