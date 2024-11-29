@@ -68,6 +68,12 @@ func (h *GearHandler) GetGearBrandList(c echo.Context) error {
 }
 
 func (h *GearHandler) GetGearList(c echo.Context) error {
+	if hasCategory := c.QueryParams().Has("category"); !hasCategory {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: "query param 'category' is required",
+		})
+	}
+
 	defaultPage := int64(1)
 	defaultLimit := int64(10)
 

@@ -29,6 +29,7 @@ type Gear struct {
 type ListGearFilter struct {
 	Page       *int64  `query:"page"`
 	Limit      *int64  `query:"limit"`
+	Category   *string `query:"category"`
 	Brand      *string `query:"brand"`
 	StartPrice *int64  `query:"start_price"`
 	EndPrice   *int64  `query:"end_price"`

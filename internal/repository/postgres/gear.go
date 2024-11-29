@@ -59,9 +59,16 @@ func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) 
 }
 
 func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
+	key := strings.ToLower(*filter.Category)
 
-	args := pgx.NamedArgs{}
-	w := []string{}
+	if _, ok := domain.GearTypeMap[key]; !ok {
+		return nil, errors.New("category not exist")
+	}
+
+	args := pgx.NamedArgs{
+		"category": domain.GearTypeMap[key],
+	}
+	w := []string{"type=@category"}
 
 	if filter.Brand != nil {
 		args["brand"] = *filter.Brand
