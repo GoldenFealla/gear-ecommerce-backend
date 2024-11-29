@@ -58,8 +58,53 @@ func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) 
 	return result, err
 }
 
-func (r *GearRepository) GetGearList(ctx context.Context) ([]*domain.Gear, error) {
-	rows, _ := r.Conn.Query(ctx, "SELECT * FROM gear")
+func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
+
+	args := pgx.NamedArgs{}
+	w := []string{}
+
+	if filter.Brand != nil {
+		args["brand"] = *filter.Brand
+		w = append(w, "brand=@brand")
+	}
+
+	if filter.StartPrice != nil {
+		args["start_price"] = *filter.StartPrice
+		w = append(w, "price>@start_price")
+	}
+
+	if filter.EndPrice != nil {
+		args["end_price"] = *filter.EndPrice
+		w = append(w, "price<@end_price")
+	}
+
+	query := ""
+
+	if len(w) > 0 {
+		query = fmt.Sprintf(
+			`
+				SELECT * FROM gear 
+				WHERE %v
+				LIMIT %v OFFSET %v
+			`,
+			strings.Join(w, " AND "),
+			*filter.Limit,
+			(*filter.Limit)*(*filter.Page-1),
+		)
+	} else {
+		query = fmt.Sprintf(
+			`
+				SELECT * FROM gear 
+				LIMIT %v OFFSET %v
+			`,
+			*filter.Limit,
+			(*filter.Limit)*(*filter.Page-1),
+		)
+	}
+
+	fmt.Println(query)
+
+	rows, _ := r.Conn.Query(ctx, query, args)
 
 	gears, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[domain.Gear])
 

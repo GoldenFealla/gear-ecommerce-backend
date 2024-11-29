@@ -10,7 +10,7 @@ import (
 
 type GearUsecase interface {
 	GetGearBrandList(category string) ([]string, error)
-	GetGearList() ([]*domain.Gear, error)
+	GetGearList(filter domain.ListGearFilter) ([]*domain.Gear, error)
 	GetGearByID(id string) (*domain.Gear, error)
 	AddGear(g *domain.AddGearForm) error
 	UpdateGear(id string, g *domain.UpdateGearForm) error
@@ -68,7 +68,23 @@ func (h *GearHandler) GetGearBrandList(c echo.Context) error {
 }
 
 func (h *GearHandler) GetGearList(c echo.Context) error {
-	result, err := h.uc.GetGearList()
+	defaultPage := int64(1)
+	defaultLimit := int64(10)
+
+	filter := domain.ListGearFilter{
+		Page:  &defaultPage,
+		Limit: &defaultLimit,
+	}
+
+	err := c.Bind(&filter)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	result, err := h.uc.GetGearList(filter)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{

@@ -9,7 +9,7 @@ import (
 
 type GearRepository interface {
 	GetGearBrandList(ctx context.Context, category string) ([]string, error)
-	GetGearList(ctx context.Context) ([]*domain.Gear, error)
+	GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error)
 	GetGearByID(ctx context.Context, id string) (*domain.Gear, error)
 	AddGear(ctx context.Context, g *domain.AddGearForm) error
 	UpdateGear(ctx context.Context, id string, g *domain.UpdateGearForm) error
@@ -39,11 +39,11 @@ func (u *GearUsecase) GetGearBrandList(category string) ([]string, error) {
 	return result, err
 }
 
-func (u *GearUsecase) GetGearList() ([]*domain.Gear, error) {
+func (u *GearUsecase) GetGearList(filter domain.ListGearFilter) ([]*domain.Gear, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	result, err := u.r.GetGearList(ctx)
+	result, err := u.r.GetGearList(ctx, filter)
 
 	if err != nil {
 		return nil, err
