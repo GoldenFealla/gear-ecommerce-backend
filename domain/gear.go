@@ -40,21 +40,21 @@ type ListGearFilter struct {
 }
 
 type AddGearForm struct {
-	Name        string  `json:"name,omitempty" validate:"required"`
-	Type        string  `json:"type,omitempty" validate:"required,is-gear"`
-	Brand       string  `json:"brand" validate:"required"`
-	Variety     string  `json:"variety" validate:"required"`
-	Price       float64 `json:"price,omitempty"`
-	Discount    float64 `json:"discount,omitempty"`
-	Quantity    int64   `json:"quantity,omitempty"`
-	ImageBase64 *string `json:"image_base64,omitempty"`
+	Name        string  `json:"name,omitempty"          conform:"trim" validate:"required"`
+	Type        string  `json:"type,omitempty"          conform:"trim" validate:"required,is-gear"`
+	Brand       string  `json:"brand"                   conform:"trim" validate:"required"`
+	Variety     string  `json:"variety"                 conform:"trim" validate:"required"`
+	Price       float64 `json:"price,omitempty"         conform:"trim" `
+	Discount    float64 `json:"discount,omitempty"      conform:"trim" `
+	Quantity    int64   `json:"quantity,omitempty"      conform:"trim" `
+	ImageBase64 *string `json:"image_base64,omitempty"  conform:"trim" `
 }
 
 type UpdateGearForm struct {
-	Name        *string  `json:"name,omitempty" db:"name" validate:"omitempty"`
-	Type        *string  `json:"type,omitempty" db:"type" validate:"omitempty,is-gear"`
-	Price       *float64 `json:"price,omitempty" db:"price" validate:"omitempty"`
-	Discount    *float64 `json:"discount,omitempty" db:"discount" validate:"omitempty"`
-	Quantity    *int64   `json:"quantity,omitempty" db:"quantity" validate:"omitempty"`
-	ImageBase64 string   `json:"image_base64,omitempty" db:"quantity" validate:"omitempty"`
+	Name        *string  `json:"name,omitempty"         db:"name"       validate:"omitempty"`
+	Type        *string  `json:"type,omitempty"         db:"type"       validate:"omitempty,is-gear"`
+	Price       *float64 `json:"price,omitempty"        db:"price"      validate:"omitempty"`
+	Discount    *float64 `json:"discount,omitempty"     db:"discount"   validate:"omitempty"`
+	Quantity    *int64   `json:"quantity,omitempty"     db:"quantity"   validate:"omitempty"`
+	ImageBase64 string   `json:"image_base64,omitempty" db:"quantity"   validate:"omitempty"`
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/goldenfealla/gear-manager/domain"
 	"github.com/labstack/echo/v4"
+	"github.com/leebenson/conform"
 )
 
 type GearUsecase interface {
@@ -189,9 +190,16 @@ func (h *GearHandler) GetGearByID(c echo.Context) error {
 func (h *GearHandler) AddGear(c echo.Context) error {
 	var body domain.AddGearForm
 	err := c.Bind(&body)
-
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	err = conform.Strings(&body)
+
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
 			Message: err.Error(),
 		})
 	}
