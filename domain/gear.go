@@ -3,6 +3,7 @@ package domain
 import "github.com/google/uuid"
 
 var GearTypeMap map[string]string = map[string]string{
+	"all":       "ALL",
 	"pc":        "PERSONAL_COMPUTER",
 	"laptop":    "LAPTOP",
 	"mainboard": "MAINBOARD",

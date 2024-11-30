@@ -12,14 +12,15 @@ import (
 	f "github.com/goldenfealla/gear-manager/internal/file"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type GearRepository struct {
-	Conn     *pgx.Conn
+	Conn     *pgxpool.Pool
 	S3Client *s3.Client
 }
 
-func NewGearRepository(conn *pgx.Conn, s3Client *s3.Client) *GearRepository {
+func NewGearRepository(conn *pgxpool.Pool, s3Client *s3.Client) *GearRepository {
 	return &GearRepository{Conn: conn, S3Client: s3Client}
 }
 
@@ -58,6 +59,60 @@ func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) 
 	return result, err
 }
 
+func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error) {
+	key := strings.ToLower(*filter.Category)
+
+	if _, ok := domain.GearTypeMap[key]; !ok {
+		return -1, errors.New("category not exist")
+	}
+
+	args := pgx.NamedArgs{}
+	w := []string{}
+
+	if key != "all" {
+		args["category"] = domain.GearTypeMap[key]
+		w = append(w, "type=@category")
+	}
+
+	if filter.Brand != nil {
+		args["brand"] = *filter.Brand
+		w = append(w, "brand=@brand")
+	}
+
+	if filter.StartPrice != nil && *filter.StartPrice != -1 {
+		args["start_price"] = *filter.StartPrice
+		w = append(w, "price>@start_price")
+	}
+
+	if filter.EndPrice != nil && *filter.EndPrice != -1 {
+		args["end_price"] = *filter.EndPrice
+		w = append(w, "price<@end_price")
+	}
+
+	query := fmt.Sprintf(
+		`
+            SELECT count(id) FROM gear 
+            WHERE %v
+		`,
+		strings.Join(w, " AND "),
+	)
+
+	rows, _ := r.Conn.Query(ctx, query, args)
+
+	type Count struct {
+		Count int64 `db:"count"`
+	}
+
+	count, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByName[Count])
+
+	if err != nil {
+		return -1, err
+	}
+
+	return count.Count, err
+
+}
+
 func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
 	key := strings.ToLower(*filter.Category)
 
@@ -65,49 +120,48 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 		return nil, errors.New("category not exist")
 	}
 
-	args := pgx.NamedArgs{
-		"category": domain.GearTypeMap[key],
+	args := pgx.NamedArgs{}
+	w := []string{}
+
+	if key != "all" {
+		args["category"] = domain.GearTypeMap[key]
+		w = append(w, "type=@category")
 	}
-	w := []string{"type=@category"}
 
 	if filter.Brand != nil {
 		args["brand"] = *filter.Brand
 		w = append(w, "brand=@brand")
 	}
 
-	if filter.StartPrice != nil {
+	if filter.StartPrice != nil && *filter.StartPrice != -1 {
 		args["start_price"] = *filter.StartPrice
 		w = append(w, "price>@start_price")
 	}
 
-	if filter.EndPrice != nil {
+	if filter.EndPrice != nil && *filter.EndPrice != -1 {
 		args["end_price"] = *filter.EndPrice
 		w = append(w, "price<@end_price")
 	}
 
-	query := ""
+	sort := ""
 
-	if len(w) > 0 {
-		query = fmt.Sprintf(
-			`
-				SELECT * FROM gear 
-				WHERE %v
-				LIMIT %v OFFSET %v
-			`,
-			strings.Join(w, " AND "),
-			*filter.Limit,
-			(*filter.Limit)*(*filter.Page-1),
-		)
-	} else {
-		query = fmt.Sprintf(
-			`
-				SELECT * FROM gear 
-				LIMIT %v OFFSET %v
-			`,
-			*filter.Limit,
-			(*filter.Limit)*(*filter.Page-1),
-		)
+	if filter.Sort != nil {
+		d := strings.ToUpper(*filter.Sort)
+		sort = fmt.Sprintf("ORDER BY discount %v", d)
 	}
+
+	query := fmt.Sprintf(
+		`
+            SELECT * FROM gear 
+            WHERE %v
+            %v
+            LIMIT %v OFFSET %v
+		`,
+		strings.Join(w, " AND "),
+		sort,
+		*filter.Limit,
+		(*filter.Limit)*(*filter.Page-1),
+	)
 
 	rows, _ := r.Conn.Query(ctx, query, args)
 

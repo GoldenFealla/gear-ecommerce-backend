@@ -10,13 +10,14 @@ import (
 	"github.com/goldenfealla/gear-manager/domain"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AddressRepository struct {
-	Conn *pgx.Conn
+	Conn *pgxpool.Pool
 }
 
-func NewAddressRepository(conn *pgx.Conn) *AddressRepository {
+func NewAddressRepository(conn *pgxpool.Pool) *AddressRepository {
 	return &AddressRepository{Conn: conn}
 }
 

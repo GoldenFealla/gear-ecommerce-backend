@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/go-playground/validator/v10"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -31,11 +31,11 @@ func main() {
 
 	// Connect to database PostgreSQL
 	log.Println("Connecting to Postgres")
-	conn, err := pgx.Connect(context.Background(), c.Postgres)
+	pool, err := pgxpool.New(context.Background(), c.Postgres)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer conn.Close(context.Background())
+	defer pool.Close()
 
 	// Connect to database Redis
 	log.Println("Connecting to Redis")
@@ -104,9 +104,9 @@ func main() {
 	v.RegisterValidation("is-gear", validation.ValidateIsGear)
 
 	// Build Repository
-	gr := postgres.NewGearRepository(conn, s3Client)
-	ur := postgres.NewUserRepository(conn)
-	ar := postgres.NewAddressRepository(conn)
+	gr := postgres.NewGearRepository(pool, s3Client)
+	ur := postgres.NewUserRepository(pool)
+	ar := postgres.NewAddressRepository(pool)
 
 	// Build Usecase
 	gu := usecase.NewGearUsecase(gr)
