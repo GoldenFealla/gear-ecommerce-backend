@@ -21,6 +21,7 @@ type Gear struct {
 	Name     string    `json:"name" db:"name"`
 	Type     string    `json:"type" db:"type"`
 	Brand    string    `json:"brand" db:"brand"`
+	Variety  string    `json:"variety" db:"variety"`
 	Price    float64   `json:"price" db:"price"`
 	Discount float64   `json:"discount" db:"discount"`
 	Quantity int64     `json:"quantity" db:"quantity"`
@@ -32,6 +33,7 @@ type ListGearFilter struct {
 	Limit      *int64  `query:"limit"`
 	Category   *string `query:"category"`
 	Brand      *string `query:"brand"`
+	Variety    *string `query:"variety"`
 	StartPrice *int64  `query:"start_price"`
 	EndPrice   *int64  `query:"end_price"`
 	Sort       *string `query:"sort"`
@@ -41,6 +43,7 @@ type AddGearForm struct {
 	Name        string  `json:"name,omitempty" validate:"required"`
 	Type        string  `json:"type,omitempty" validate:"required,is-gear"`
 	Brand       string  `json:"brand" validate:"required"`
+	Variety     string  `json:"variety" validate:"required"`
 	Price       float64 `json:"price,omitempty"`
 	Discount    float64 `json:"discount,omitempty"`
 	Quantity    int64   `json:"quantity,omitempty"`

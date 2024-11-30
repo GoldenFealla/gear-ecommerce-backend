@@ -81,6 +81,11 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		w = append(w, "brand=@brand")
 	}
 
+	if filter.Variety != nil {
+		args["variety"] = *filter.Variety
+		w = append(w, "variety=@variety")
+	}
+
 	if filter.StartPrice != nil && *filter.StartPrice != -1 {
 		args["start_price"] = *filter.StartPrice
 		w = append(w, "price>@start_price")
@@ -116,7 +121,6 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 	}
 
 	return count.Count, err
-
 }
 
 func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
@@ -139,6 +143,11 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 	if filter.Brand != nil {
 		args["brand"] = *filter.Brand
 		w = append(w, "brand=@brand")
+	}
+
+	if filter.Variety != nil {
+		args["variety"] = *filter.Variety
+		w = append(w, "variety=@variety")
 	}
 
 	if filter.StartPrice != nil && *filter.StartPrice != -1 {
@@ -207,8 +216,8 @@ func (r *GearRepository) GetGearByID(ctx context.Context, id string) (*domain.Ge
 
 func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) error {
 	query := `
-		INSERT INTO gear (id, name, type, price, discount, quantity, image_url, brand) 
-		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL, @gearBrand)
+		INSERT INTO gear (id, name, type, price, discount, quantity, image_url, brand, variety) 
+		VALUES (@gearID, @gearName, @gearType, @gearPrice, @gearDiscount, @gearQuantity, @gearImageURL, @gearBrand, @gearVariety)
 	`
 
 	newUUID, err := uuid.NewV7()
@@ -228,6 +237,7 @@ func (r *GearRepository) AddGear(ctx context.Context, g *domain.AddGearForm) err
 		"gearQuantity": g.Quantity,
 		"gearImageURL": "",
 		"gearBrand":    g.Brand,
+		"gearVariety":  g.Variety,
 	}
 
 	if g.ImageBase64 != nil {
