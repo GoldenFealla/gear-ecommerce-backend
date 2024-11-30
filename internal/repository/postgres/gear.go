@@ -59,6 +59,41 @@ func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) 
 	return result, err
 }
 
+func (r *GearRepository) GetGearVarietyList(ctx context.Context, category string) ([]string, error) {
+	query := `SELECT DISTINCT variety FROM gear WHERE type=@type`
+
+	key := strings.ToLower(category)
+
+	if _, ok := domain.GearTypeMap[key]; !ok {
+		return nil, errors.New("category not exist")
+	}
+
+	args := pgx.NamedArgs{
+		"type": domain.GearTypeMap[key],
+	}
+
+	rows, _ := r.Conn.Query(ctx, query, args)
+
+	type Variety struct {
+		Variety string `db:"variety"`
+	}
+
+	varieties, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[Variety])
+
+	if err != nil {
+		return nil, err
+	}
+
+	n := len(varieties)
+	result := make([]string, n)
+
+	for i := 0; i < n; i++ {
+		result[i] = varieties[i].Variety
+	}
+
+	return result, err
+}
+
 func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error) {
 	key := strings.ToLower(*filter.Category)
 
