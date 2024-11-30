@@ -36,7 +36,7 @@ func NewGearHandler(e *echo.Echo, uc GearUsecase, v *validator.Validate) {
 	group.GET("/", handler.GetGearByID)
 	group.GET("/list-count", handler.GetGearListCount)
 	group.GET("/list-brand", handler.GetGearBrandList)
-	group.GET("/list-variety", handler.GetGearBrandList)
+	group.GET("/list-variety", handler.GetGearVarietyList)
 	group.GET("/list", handler.GetGearList)
 	group.POST("/create", handler.AddGear)
 	group.PUT("/update", handler.UpdateGear)
