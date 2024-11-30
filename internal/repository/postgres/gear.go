@@ -69,6 +69,8 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 	args := pgx.NamedArgs{}
 	w := []string{}
 
+	where := ""
+
 	if key != "all" {
 		args["category"] = domain.GearTypeMap[key]
 		w = append(w, "type=@category")
@@ -89,12 +91,16 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		w = append(w, "price<@end_price")
 	}
 
+	if len(w) > 0 {
+		where = fmt.Sprintf("WHERE %v", strings.Join(w, " AND "))
+	}
+
 	query := fmt.Sprintf(
 		`
             SELECT count(id) FROM gear 
-            WHERE %v
+            %v
 		`,
-		strings.Join(w, " AND "),
+		where,
 	)
 
 	rows, _ := r.Conn.Query(ctx, query, args)
@@ -123,6 +129,8 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 	args := pgx.NamedArgs{}
 	w := []string{}
 
+	where := ""
+
 	if key != "all" {
 		args["category"] = domain.GearTypeMap[key]
 		w = append(w, "type=@category")
@@ -143,6 +151,10 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 		w = append(w, "price<@end_price")
 	}
 
+	if len(w) > 0 {
+		where = fmt.Sprintf("WHERE %v", strings.Join(w, " AND "))
+	}
+
 	sort := ""
 
 	if filter.Sort != nil {
@@ -153,11 +165,11 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 	query := fmt.Sprintf(
 		`
             SELECT * FROM gear 
-            WHERE %v
+            %v
             %v
             LIMIT %v OFFSET %v
 		`,
-		strings.Join(w, " AND "),
+		where,
 		sort,
 		*filter.Limit,
 		(*filter.Limit)*(*filter.Page-1),
