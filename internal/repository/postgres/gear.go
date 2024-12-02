@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -121,14 +122,30 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		w = append(w, "variety=@variety")
 	}
 
-	if filter.StartPrice != nil && *filter.StartPrice != -1 {
-		args["start_price"] = *filter.StartPrice
-		w = append(w, "price>@start_price")
-	}
+	if filter.Price != nil {
+		prices := strings.Split(*filter.Price, ",")
 
-	if filter.EndPrice != nil && *filter.EndPrice != -1 {
-		args["end_price"] = *filter.EndPrice
-		w = append(w, "price<@end_price")
+		startPrice, err := strconv.ParseInt(prices[0], 10, 64)
+
+		if err != nil {
+			return -1, err
+		}
+
+		if startPrice != -1 {
+			args["start_price"] = startPrice
+			w = append(w, "price>@start_price")
+		}
+
+		endPrice, err := strconv.ParseInt(prices[1], 10, 64)
+
+		if err != nil {
+			return -1, err
+		}
+
+		if endPrice != -1 {
+			args["end_price"] = endPrice
+			w = append(w, "price<@end_price")
+		}
 	}
 
 	if len(w) > 0 {
@@ -185,14 +202,30 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
 		w = append(w, "variety=@variety")
 	}
 
-	if filter.StartPrice != nil && *filter.StartPrice != -1 {
-		args["start_price"] = *filter.StartPrice
-		w = append(w, "price>@start_price")
-	}
+	if filter.Price != nil {
+		prices := strings.Split(*filter.Price, ",")
 
-	if filter.EndPrice != nil && *filter.EndPrice != -1 {
-		args["end_price"] = *filter.EndPrice
-		w = append(w, "price<@end_price")
+		startPrice, err := strconv.ParseInt(prices[0], 10, 64)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if startPrice != -1 {
+			args["start_price"] = startPrice
+			w = append(w, "price>@start_price")
+		}
+
+		endPrice, err := strconv.ParseInt(prices[1], 10, 64)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if endPrice != -1 {
+			args["end_price"] = endPrice
+			w = append(w, "price<@end_price")
+		}
 	}
 
 	if len(w) > 0 {
@@ -325,6 +358,20 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 				fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, value.Elem()))
 			}
 		}
+	}
+
+	if g.ImageBase64 != nil {
+		image_url, err := f.UploadImageJpeg(
+			r.S3Client,
+			*g.ImageBase64,
+			fmt.Sprintf("%v.jpg", id),
+		)
+
+		if err != nil {
+			return err
+		}
+
+		args["gearImageURL"] = *image_url
 	}
 
 	if len(fieldString) == 0 {

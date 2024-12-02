@@ -29,14 +29,13 @@ type Gear struct {
 }
 
 type ListGearFilter struct {
-	Page       *int64  `query:"page"`
-	Limit      *int64  `query:"limit"`
-	Category   *string `query:"category"`
-	Brand      *string `query:"brand"`
-	Variety    *string `query:"variety"`
-	StartPrice *int64  `query:"start_price"`
-	EndPrice   *int64  `query:"end_price"`
-	Sort       *string `query:"sort"`
+	Page     *int64  `query:"page"`
+	Limit    *int64  `query:"limit"`
+	Category *string `query:"category"`
+	Brand    *string `query:"brand"`
+	Variety  *string `query:"variety"`
+	Price    *string `query:"price"`
+	Sort     *string `query:"sort"`
 }
 
 type AddGearForm struct {
@@ -51,10 +50,12 @@ type AddGearForm struct {
 }
 
 type UpdateGearForm struct {
-	Name        *string  `json:"name,omitempty"         db:"name"       validate:"omitempty"`
-	Type        *string  `json:"type,omitempty"         db:"type"       validate:"omitempty,is-gear"`
-	Price       *float64 `json:"price,omitempty"        db:"price"      validate:"omitempty"`
-	Discount    *float64 `json:"discount,omitempty"     db:"discount"   validate:"omitempty"`
-	Quantity    *int64   `json:"quantity,omitempty"     db:"quantity"   validate:"omitempty"`
-	ImageBase64 string   `json:"image_base64,omitempty" db:"quantity"   validate:"omitempty"`
+	Name        *string  `json:"name,omitempty"         db:"name"       conform:"trim"  validate:"omitempty"`
+	Type        *string  `json:"type,omitempty"         db:"type"       conform:"trim"  validate:"omitempty,is-gear"`
+	Brand       *string  `json:"brand"                  db:"brand"      conform:"trim"  validate:"omitempty"`
+	Variety     *string  `json:"variety"                db:"variety"    conform:"trim"  validate:"omitempty"`
+	Price       *float64 `json:"price,omitempty"        db:"price"      conform:"trim"  validate:"omitempty"`
+	Discount    *float64 `json:"discount,omitempty"     db:"discount"                   validate:"omitempty"`
+	Quantity    *int64   `json:"quantity,omitempty"     db:"quantity"                   validate:"omitempty"`
+	ImageBase64 *string  `json:"image_base64,omitempty"                                 validate:"omitempty"`
 }
