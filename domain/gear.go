@@ -57,5 +57,5 @@ type UpdateGearForm struct {
 	Price       *float64 `json:"price,omitempty"        db:"price"      conform:"trim"  validate:"omitempty"`
 	Discount    *float64 `json:"discount,omitempty"     db:"discount"                   validate:"omitempty"`
 	Quantity    *int64   `json:"quantity,omitempty"     db:"quantity"                   validate:"omitempty"`
-	ImageBase64 *string  `json:"image_base64,omitempty"                                 validate:"omitempty"`
+	ImageBase64 *string  `json:"image_base64,omitempty" db:"image_base64"               validate:"omitempty"`
 }

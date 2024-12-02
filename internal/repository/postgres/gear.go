@@ -347,6 +347,10 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 		value := v.Field(i)
 
 		if !value.IsNil() {
+			if field == "image_base64" {
+				continue
+			}
+
 			if field == "type" {
 				key := strings.ToLower(value.Elem().String())
 				val := domain.GearTypeMap[key]
@@ -362,7 +366,7 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 	}
 
 	if g.ImageBase64 != nil {
-		image_url, err := f.UploadImageJpeg(
+		imageURL, err := f.UploadImageJpeg(
 			r.S3Client,
 			*g.ImageBase64,
 			fmt.Sprintf("%v.jpg", id),
@@ -372,7 +376,8 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 			return err
 		}
 
-		args["gearImageURL"] = *image_url
+		fieldString = append(fieldString, fmt.Sprintf("%v='%v'", "image_url", *imageURL))
+		args["gearImageURL"] = *imageURL
 	}
 
 	if len(fieldString) == 0 {
@@ -384,6 +389,8 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 		SET %v
 		WHERE id=@id;
 	`, strings.Join(fieldString, ","))
+
+	fmt.Println(query)
 
 	_, err := r.Conn.Exec(ctx, query, args)
 
