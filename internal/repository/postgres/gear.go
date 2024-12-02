@@ -348,7 +348,8 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 
 		if !value.IsNil() {
 			if field == "type" {
-				val := domain.GearTypeMap[value.Elem().String()]
+				key := strings.ToLower(value.Elem().String())
+				val := domain.GearTypeMap[key]
 				args[field] = val
 				fieldString = append(fieldString, fmt.Sprintf("%v='%v'", field, val))
 			}
