@@ -25,8 +25,8 @@ func NewGearRepository(conn *pgxpool.Pool, s3Client *s3.Client) *GearRepository 
 	return &GearRepository{Conn: conn, S3Client: s3Client}
 }
 
-func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) ([]string, error) {
-	query := `SELECT DISTINCT brand FROM gear WHERE type=@type`
+func (r *GearRepository) getGearFilterList(ctx context.Context, category string, field string) ([]string, error) {
+	query := fmt.Sprintf("SELECT DISTINCT %v FROM gear WHERE type=@type", field)
 
 	key := strings.ToLower(category)
 
@@ -40,72 +40,35 @@ func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) 
 
 	rows, _ := r.Conn.Query(ctx, query, args)
 
-	type Brand struct {
-		Brand string `db:"brand"`
-	}
-
-	brands, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[Brand])
+	list, err := pgx.CollectRows(rows, func(row pgx.CollectableRow) (string, error) {
+		var item string
+		err := row.Scan(&item)
+		return item, err
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	n := len(brands)
-	result := make([]string, n)
+	return list, err
+}
 
-	for i := 0; i < n; i++ {
-		result[i] = brands[i].Brand
-	}
-
-	return result, err
+func (r *GearRepository) GetGearBrandList(ctx context.Context, category string) ([]string, error) {
+	return r.getGearFilterList(ctx, category, "brand")
 }
 
 func (r *GearRepository) GetGearVarietyList(ctx context.Context, category string) ([]string, error) {
-	query := `SELECT DISTINCT variety FROM gear WHERE type=@type`
+	return r.getGearFilterList(ctx, category, "variety")
+}
 
-	key := strings.ToLower(category)
+func (r *GearRepository) processWhereFilter(args pgx.NamedArgs, filter domain.ListGearFilter) (*string, error) {
+	key := strings.ToLower(*filter.Category)
 
 	if _, ok := domain.GearTypeMap[key]; !ok {
 		return nil, errors.New("category not exist")
 	}
 
-	args := pgx.NamedArgs{
-		"type": domain.GearTypeMap[key],
-	}
-
-	rows, _ := r.Conn.Query(ctx, query, args)
-
-	type Variety struct {
-		Variety string `db:"variety"`
-	}
-
-	varieties, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[Variety])
-
-	if err != nil {
-		return nil, err
-	}
-
-	n := len(varieties)
-	result := make([]string, n)
-
-	for i := 0; i < n; i++ {
-		result[i] = varieties[i].Variety
-	}
-
-	return result, err
-}
-
-func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error) {
-	key := strings.ToLower(*filter.Category)
-
-	if _, ok := domain.GearTypeMap[key]; !ok {
-		return -1, errors.New("category not exist")
-	}
-
-	args := pgx.NamedArgs{}
 	w := []string{}
-
-	where := ""
 
 	if key != "all" {
 		args["category"] = domain.GearTypeMap[key]
@@ -128,7 +91,7 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		startPrice, err := strconv.ParseInt(prices[0], 10, 64)
 
 		if err != nil {
-			return -1, err
+			return nil, err
 		}
 
 		if startPrice != -1 {
@@ -139,7 +102,7 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		endPrice, err := strconv.ParseInt(prices[1], 10, 64)
 
 		if err != nil {
-			return -1, err
+			return nil, err
 		}
 
 		if endPrice != -1 {
@@ -148,8 +111,21 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
 		}
 	}
 
+	where := ""
 	if len(w) > 0 {
 		where = fmt.Sprintf("WHERE %v", strings.Join(w, " AND "))
+	}
+
+	return &where, nil
+}
+
+func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error) {
+	args := pgx.NamedArgs{}
+
+	where, err := r.processWhereFilter(args, filter)
+
+	if err != nil {
+		return -1, err
 	}
 
 	query := fmt.Sprintf(
@@ -157,79 +133,31 @@ func (r *GearRepository) GetGearListCount(ctx context.Context, filter domain.Lis
             SELECT count(id) FROM gear 
             %v
 		`,
-		where,
+		*where,
 	)
 
 	rows, _ := r.Conn.Query(ctx, query, args)
 
-	type Count struct {
-		Count int64 `db:"count"`
-	}
-
-	count, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByName[Count])
+	count, err := pgx.CollectOneRow(rows, func(row pgx.CollectableRow) (int64, error) {
+		var count int64
+		err := row.Scan((&count))
+		return count, err
+	})
 
 	if err != nil {
 		return -1, err
 	}
 
-	return count.Count, err
+	return count, err
 }
 
 func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
-	key := strings.ToLower(*filter.Category)
-
-	if _, ok := domain.GearTypeMap[key]; !ok {
-		return nil, errors.New("category not exist")
-	}
-
 	args := pgx.NamedArgs{}
-	w := []string{}
 
-	where := ""
+	where, err := r.processWhereFilter(args, filter)
 
-	if key != "all" {
-		args["category"] = domain.GearTypeMap[key]
-		w = append(w, "type=@category")
-	}
-
-	if filter.Brand != nil {
-		args["brand"] = *filter.Brand
-		w = append(w, "brand=@brand")
-	}
-
-	if filter.Variety != nil {
-		args["variety"] = *filter.Variety
-		w = append(w, "variety=@variety")
-	}
-
-	if filter.Price != nil {
-		prices := strings.Split(*filter.Price, ",")
-
-		startPrice, err := strconv.ParseInt(prices[0], 10, 64)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if startPrice != -1 {
-			args["start_price"] = startPrice
-			w = append(w, "price>@start_price")
-		}
-
-		endPrice, err := strconv.ParseInt(prices[1], 10, 64)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if endPrice != -1 {
-			args["end_price"] = endPrice
-			w = append(w, "price<@end_price")
-		}
-	}
-
-	if len(w) > 0 {
-		where = fmt.Sprintf("WHERE %v", strings.Join(w, " AND "))
+	if err != nil {
+		return nil, err
 	}
 
 	sort := ""
@@ -246,7 +174,7 @@ func (r *GearRepository) GetGearList(ctx context.Context, filter domain.ListGear
             %v
             LIMIT %v OFFSET %v
 		`,
-		where,
+		*where,
 		sort,
 		*filter.Limit,
 		(*filter.Limit)*(*filter.Page-1),
