@@ -107,16 +107,19 @@ func main() {
 	gr := postgres.NewGearRepository(pool, s3Client)
 	ur := postgres.NewUserRepository(pool)
 	ar := postgres.NewAddressRepository(pool)
+	or := postgres.NewOrderRepository(pool)
 
 	// Build Usecase
 	gu := usecase.NewGearUsecase(gr)
 	uu := usecase.NewUserUsecase(ur)
 	au := usecase.NewAddressUsecase(ar)
+	ou := usecase.NewOrderUsercase(or, ur)
 
 	// Build Handler
 	rest.NewUserHandler(e, uu, v)
 	rest.NewGearHandler(e, gu, v)
 	rest.NewAddressHandler(e, au, v)
+	rest.NewOrderHandler(e, ou, v)
 
 	err = e.Start(fmt.Sprintf("%v:%v", c.Host, c.Port))
 	if err != nil {
