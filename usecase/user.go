@@ -57,7 +57,7 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo
 
 	hashedPassword, err := password.Generate(f.Password)
 	if err != nil {
-		return nil, fmt.Errorf("Error while hashing password")
+		return nil, fmt.Errorf("error while hashing password")
 	}
 
 	user := &domain.User{
@@ -73,7 +73,7 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo
 	err = u.r.AddUser(ctx, user)
 
 	if err != nil {
-		return nil, fmt.Errorf("Error while creating user. Detail: %v", err.Error())
+		return nil, fmt.Errorf("error while creating user. Detail: %v", err.Error())
 	}
 
 	return &domain.UserInfo{
