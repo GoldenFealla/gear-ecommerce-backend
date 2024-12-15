@@ -96,7 +96,8 @@ func main() {
 	}))
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		CustomTimeFormat: "15:04:05 02/01/2006",
-		Format:           "time: ${time_custom}\tmethod=${method}\turi=${uri}\tstatus=${status}\tlatency=${latency}\terror=${error}\n",
+		Format:           "[${time_custom}] ${status} ${method} ${path} ${latency_human} ${error}\n",
+		Output:           e.Logger.Output(),
 	}))
 	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 	e.Use(session.Middleware(store))
