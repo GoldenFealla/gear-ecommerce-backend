@@ -17,6 +17,7 @@ type Order struct {
 	ID     uuid.UUID   `json:"id" db:"id"`
 	Status OrderStatus `json:"status" db:"status"`
 	UserID uuid.UUID   `json:"user_id" db:"user_id"`
+	Total  int64       `json:"total" db:"total"`
 }
 
 type OrderGear struct {

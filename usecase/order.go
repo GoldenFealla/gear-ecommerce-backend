@@ -17,6 +17,7 @@ type OrderRepository interface {
 	SetGearQuantityCart(ctx context.Context, cart *domain.Order, gearID string, quantity int64) error
 	RemoveProductToCart(ctx context.Context, cart *domain.Order, gearID string) error
 	UpdateOrderStatus(ctx context.Context, cartID string, status domain.OrderStatus) error
+	UpdateOrderTotalPrice(ctx context.Context, cartID string, price int64) error
 }
 
 type OrderUsercase struct {
@@ -111,10 +112,15 @@ func (u *OrderUsercase) RemoveGearFromCart(ctx context.Context, userID string, g
 	return nil
 }
 
-func (u *OrderUsercase) updateGearQuantityWorker(ctx context.Context, ordergear <-chan *domain.OrderGear) {
+func (u *OrderUsercase) updateGearQuantityWorker(
+	ctx context.Context,
+	ordergear <-chan *domain.OrderGear,
+	pricegear chan<- int64,
+) {
 	for og := range ordergear {
 		r := og.Gear.Quantity - og.Quantity
 		u.gr.UpdateGearQuantity(ctx, og.Gear.ID.String(), r)
+		pricegear <- int64(og.Gear.Price) * og.Quantity
 	}
 }
 
@@ -131,16 +137,25 @@ func (u *OrderUsercase) PayCart(ctx context.Context, orderID string) error {
 
 	numOfOrderGear := len(cart.OrderGear)
 	orderGearsChan := make(chan *domain.OrderGear, numOfOrderGear)
-
-	// 4 worker
+	priceGearsChan := make(chan int64, numOfOrderGear)
+	// 3 worker
 	for w := 1; w <= 3; w++ {
-		go u.updateGearQuantityWorker(ctx, orderGearsChan)
+		go u.updateGearQuantityWorker(ctx, orderGearsChan, priceGearsChan)
 	}
 
 	for j := 0; j < numOfOrderGear; j++ {
 		orderGearsChan <- cart.OrderGear[j]
 	}
 	close(orderGearsChan)
+
+	totalPrice := int64(0)
+
+	for j := 0; j < numOfOrderGear; j++ {
+		priceGear := <-priceGearsChan
+		totalPrice += priceGear
+	}
+
+	u.or.UpdateOrderTotalPrice(ctx, cart.Order.ID.String(), totalPrice)
 
 	return nil
 }

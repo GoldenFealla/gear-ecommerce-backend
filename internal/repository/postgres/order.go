@@ -173,14 +173,15 @@ func (r *OrderRepository) CreateCart(ctx context.Context, userID string) error {
 	}
 
 	query := `
-		INSERT INTO "order" (id, status, user_id)
-		VALUES (@id, @status, @user_id)
+		INSERT INTO "order" (id, status, user_id, total)
+		VALUES (@id, @status, @user_id, @total)
 	`
 
 	args := pgx.NamedArgs{
 		"id":      cart.ID,
 		"status":  cart.Status,
 		"user_id": cart.UserID,
+		"total":   0,
 	}
 
 	_, err = r.Conn.Exec(ctx, query, args)
@@ -279,6 +280,31 @@ func (r *OrderRepository) UpdateOrderStatus(ctx context.Context, orderID string,
 	args := pgx.NamedArgs{
 		"id":     orderID,
 		"status": status,
+	}
+
+	_, err = r.Conn.Exec(ctx, query, args)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrderRepository) UpdateOrderTotalPrice(ctx context.Context, orderID string, price int64) error {
+	err := uuid.Validate(orderID)
+	if err != nil {
+		return errors.New("invalid uuid")
+	}
+
+	query := `
+		UPDATE "order"
+		SET total=@total
+		WHERE id=@id
+	`
+
+	args := pgx.NamedArgs{
+		"id":    orderID,
+		"total": price,
 	}
 
 	_, err = r.Conn.Exec(ctx, query, args)
