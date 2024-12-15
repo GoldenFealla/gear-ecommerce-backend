@@ -17,6 +17,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/rbcervilla/redisstore/v9"
 	"github.com/redis/go-redis/v9"
+	"golang.org/x/time/rate"
 
 	"github.com/goldenfealla/gear-manager/config"
 	"github.com/goldenfealla/gear-manager/internal/repository/postgres"
@@ -97,6 +98,7 @@ func main() {
 		CustomTimeFormat: "15:04:05 02/01/2006",
 		Format:           "time: ${time_custom}\tmethod=${method}\turi=${uri}\tstatus=${status}\tlatency=${latency}\terror=${error}\n",
 	}))
+	e.Use(middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(rate.Limit(20))))
 	e.Use(session.Middleware(store))
 
 	// set up validator

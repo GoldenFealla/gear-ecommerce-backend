@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -11,11 +12,11 @@ import (
 )
 
 type AddressUsecase interface {
-	GetAddressList(userID string) ([]*domain.Address, error)
-	GetAddressByID(id string) (*domain.Address, error)
-	AddAddress(userID string, g *domain.AddAddressForm) error
-	UpdateAddress(id string, g *domain.UpdateAddressForm) error
-	DeleteAddress(id string) error
+	GetAddressList(ctx context.Context, userID string) ([]*domain.Address, error)
+	GetAddressByID(ctx context.Context, id string) (*domain.Address, error)
+	AddAddress(ctx context.Context, userID string, g *domain.AddAddressForm) error
+	UpdateAddress(ctx context.Context, id string, g *domain.UpdateAddressForm) error
+	DeleteAddress(ctx context.Context, id string) error
 }
 
 type AddressHandler struct {
@@ -56,7 +57,8 @@ func (h *AddressHandler) GetAddress(c echo.Context) error {
 
 	id := c.QueryParams().Get("id")
 
-	result, err := h.ac.GetAddressByID(id)
+	ctx := c.Request().Context()
+	result, err := h.ac.GetAddressByID(ctx, id)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -79,7 +81,8 @@ func (h *AddressHandler) GetListAddress(c echo.Context) error {
 
 	userID := c.QueryParams().Get("user_id")
 
-	result, err := h.ac.GetAddressList(userID)
+	ctx := c.Request().Context()
+	result, err := h.ac.GetAddressList(ctx, userID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -120,7 +123,8 @@ func (h *AddressHandler) AddAddress(c echo.Context) error {
 		})
 	}
 
-	err = h.ac.AddAddress(u.ID.String(), &body)
+	ctx := c.Request().Context()
+	err = h.ac.AddAddress(ctx, u.ID.String(), &body)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -151,7 +155,8 @@ func (h *AddressHandler) UpdateAddress(c echo.Context) error {
 		})
 	}
 
-	err = h.ac.UpdateAddress(id, &body)
+	ctx := c.Request().Context()
+	err = h.ac.UpdateAddress(ctx, id, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -173,7 +178,8 @@ func (h *AddressHandler) DeleteAddress(c echo.Context) error {
 
 	id := c.QueryParams().Get("id")
 
-	err := h.ac.DeleteAddress(id)
+	ctx := c.Request().Context()
+	err := h.ac.DeleteAddress(ctx, id)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{

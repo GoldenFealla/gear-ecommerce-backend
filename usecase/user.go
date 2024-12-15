@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/goldenfealla/gear-manager/domain"
 	"github.com/goldenfealla/gear-manager/internal/password"
@@ -31,10 +30,7 @@ func NewUserUsecase(r UserRepository) *UserUsecase {
 	}
 }
 
-func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *UserUsecase) RegisterUser(ctx context.Context, f *domain.RegisterUserForm) (*domain.UserInfo, error) {
 	existedUsername, err := u.r.CheckUsernameExist(ctx, f.Username)
 
 	if err != nil {
@@ -86,10 +82,7 @@ func (u *UserUsecase) RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo
 	}, nil
 }
 
-func (u *UserUsecase) LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *UserUsecase) LoginUser(ctx context.Context, f *domain.LoginUserForm) (*domain.UserInfo, error) {
 	existedUser, err := u.r.CheckUsernameOrEmailExist(ctx, f.UsernameOrEmail)
 
 	if err != nil {
@@ -122,10 +115,7 @@ func (u *UserUsecase) LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, erro
 	}, nil
 }
 
-func (u *UserUsecase) UpdateUser(id string, f *domain.UpdateUserForm) (*domain.UserInfo, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *UserUsecase) UpdateUser(ctx context.Context, id string, f *domain.UpdateUserForm) (*domain.UserInfo, error) {
 	existedUser, err := u.r.CheckIDExist(ctx, id)
 
 	if err != nil {

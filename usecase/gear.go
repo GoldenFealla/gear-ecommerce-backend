@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"time"
 
 	"github.com/goldenfealla/gear-manager/domain"
 )
@@ -28,10 +27,7 @@ func NewGearUsecase(r GearRepository) *GearUsecase {
 	}
 }
 
-func (u *GearUsecase) GetGearBrandList(category string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) GetGearBrandList(ctx context.Context, category string) ([]string, error) {
 	result, err := u.r.GetGearBrandList(ctx, category)
 
 	if err != nil {
@@ -41,10 +37,7 @@ func (u *GearUsecase) GetGearBrandList(category string) ([]string, error) {
 	return result, err
 }
 
-func (u *GearUsecase) GetGearVarietyList(category string) ([]string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) GetGearVarietyList(ctx context.Context, category string) ([]string, error) {
 	result, err := u.r.GetGearVarietyList(ctx, category)
 
 	if err != nil {
@@ -54,10 +47,7 @@ func (u *GearUsecase) GetGearVarietyList(category string) ([]string, error) {
 	return result, err
 }
 
-func (u *GearUsecase) GetGearListCount(filter domain.ListGearFilter) (int64, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error) {
 	result, err := u.r.GetGearListCount(ctx, filter)
 
 	if err != nil {
@@ -67,10 +57,7 @@ func (u *GearUsecase) GetGearListCount(filter domain.ListGearFilter) (int64, err
 	return result, err
 }
 
-func (u *GearUsecase) GetGearList(filter domain.ListGearFilter) ([]*domain.Gear, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error) {
 	result, err := u.r.GetGearList(ctx, filter)
 
 	if err != nil {
@@ -80,10 +67,7 @@ func (u *GearUsecase) GetGearList(filter domain.ListGearFilter) ([]*domain.Gear,
 	return result, err
 }
 
-func (u *GearUsecase) GetGearByID(id string) (*domain.Gear, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) GetGearByID(ctx context.Context, id string) (*domain.Gear, error) {
 	result, err := u.r.GetGearByID(ctx, id)
 
 	if err != nil {
@@ -93,10 +77,7 @@ func (u *GearUsecase) GetGearByID(id string) (*domain.Gear, error) {
 	return result, err
 }
 
-func (u *GearUsecase) AddGear(f *domain.AddGearForm) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) AddGear(ctx context.Context, f *domain.AddGearForm) error {
 	err := u.r.AddGear(ctx, f)
 
 	if err != nil {
@@ -106,10 +87,7 @@ func (u *GearUsecase) AddGear(f *domain.AddGearForm) error {
 	return nil
 }
 
-func (u *GearUsecase) UpdateGear(id string, f *domain.UpdateGearForm) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) UpdateGear(ctx context.Context, id string, f *domain.UpdateGearForm) error {
 	err := u.r.UpdateGear(ctx, id, f)
 
 	if err != nil {
@@ -119,10 +97,7 @@ func (u *GearUsecase) UpdateGear(id string, f *domain.UpdateGearForm) error {
 	return nil
 }
 
-func (u *GearUsecase) DeleteGear(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *GearUsecase) DeleteGear(ctx context.Context, id string) error {
 	err := u.r.DeleteGear(ctx, id)
 
 	if err != nil {

@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -10,14 +11,14 @@ import (
 )
 
 type GearUsecase interface {
-	GetGearVarietyList(category string) ([]string, error)
-	GetGearBrandList(category string) ([]string, error)
-	GetGearListCount(filter domain.ListGearFilter) (int64, error)
-	GetGearList(filter domain.ListGearFilter) ([]*domain.Gear, error)
-	GetGearByID(id string) (*domain.Gear, error)
-	AddGear(g *domain.AddGearForm) error
-	UpdateGear(id string, g *domain.UpdateGearForm) error
-	DeleteGear(id string) error
+	GetGearVarietyList(ctx context.Context, category string) ([]string, error)
+	GetGearBrandList(ctx context.Context, category string) ([]string, error)
+	GetGearListCount(ctx context.Context, filter domain.ListGearFilter) (int64, error)
+	GetGearList(ctx context.Context, filter domain.ListGearFilter) ([]*domain.Gear, error)
+	GetGearByID(ctx context.Context, id string) (*domain.Gear, error)
+	AddGear(ctx context.Context, g *domain.AddGearForm) error
+	UpdateGear(ctx context.Context, id string, g *domain.UpdateGearForm) error
+	DeleteGear(ctx context.Context, id string) error
 }
 
 type GearHandler struct {
@@ -57,7 +58,8 @@ func (h *GearHandler) GetGearBrandList(c echo.Context) error {
 
 	category := c.QueryParams().Get("category")
 
-	result, err := h.uc.GetGearBrandList(category)
+	ctx := c.Request().Context()
+	result, err := h.uc.GetGearBrandList(ctx, category)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -81,7 +83,8 @@ func (h *GearHandler) GetGearVarietyList(c echo.Context) error {
 
 	category := c.QueryParams().Get("category")
 
-	result, err := h.uc.GetGearVarietyList(category)
+	ctx := c.Request().Context()
+	result, err := h.uc.GetGearVarietyList(ctx, category)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -113,7 +116,8 @@ func (h *GearHandler) GetGearListCount(c echo.Context) error {
 		})
 	}
 
-	result, err := h.uc.GetGearListCount(filter)
+	ctx := c.Request().Context()
+	result, err := h.uc.GetGearListCount(ctx, filter)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -150,7 +154,8 @@ func (h *GearHandler) GetGearList(c echo.Context) error {
 		})
 	}
 
-	result, err := h.uc.GetGearList(filter)
+	ctx := c.Request().Context()
+	result, err := h.uc.GetGearList(ctx, filter)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -173,7 +178,8 @@ func (h *GearHandler) GetGearByID(c echo.Context) error {
 
 	id := c.QueryParams().Get("id")
 
-	result, err := h.uc.GetGearByID(id)
+	ctx := c.Request().Context()
+	result, err := h.uc.GetGearByID(ctx, id)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -212,7 +218,8 @@ func (h *GearHandler) AddGear(c echo.Context) error {
 		})
 	}
 
-	err = h.uc.AddGear(&body)
+	ctx := c.Request().Context()
+	err = h.uc.AddGear(ctx, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -243,7 +250,8 @@ func (h *GearHandler) UpdateGear(c echo.Context) error {
 		})
 	}
 
-	err = h.uc.UpdateGear(id, &body)
+	ctx := c.Request().Context()
+	err = h.uc.UpdateGear(ctx, id, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -265,7 +273,8 @@ func (h *GearHandler) DeleteGear(c echo.Context) error {
 
 	id := c.QueryParams().Get("id")
 
-	err := h.uc.DeleteGear(id)
+	ctx := c.Request().Context()
+	err := h.uc.DeleteGear(ctx, id)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{

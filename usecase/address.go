@@ -2,7 +2,6 @@ package usecase
 
 import (
 	"context"
-	"time"
 
 	"github.com/goldenfealla/gear-manager/domain"
 )
@@ -25,10 +24,7 @@ func NewAddressUsecase(r AddressRepository) *AddressUsecase {
 	}
 }
 
-func (u *AddressUsecase) GetAddressByID(id string) (*domain.Address, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *AddressUsecase) GetAddressByID(ctx context.Context, id string) (*domain.Address, error) {
 	result, err := u.r.GetAddressByID(ctx, id)
 
 	if err != nil {
@@ -38,10 +34,7 @@ func (u *AddressUsecase) GetAddressByID(id string) (*domain.Address, error) {
 	return result, err
 }
 
-func (u *AddressUsecase) GetAddressList(userID string) ([]*domain.Address, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *AddressUsecase) GetAddressList(ctx context.Context, userID string) ([]*domain.Address, error) {
 	result, err := u.r.GetAddressList(ctx, userID)
 
 	if err != nil {
@@ -51,11 +44,7 @@ func (u *AddressUsecase) GetAddressList(userID string) ([]*domain.Address, error
 	return result, err
 }
 
-func (u *AddressUsecase) AddAddress(userID string, f *domain.AddAddressForm) error {
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *AddressUsecase) AddAddress(ctx context.Context, userID string, f *domain.AddAddressForm) error {
 	err := u.r.AddAddress(ctx, userID, f)
 
 	if err != nil {
@@ -65,10 +54,7 @@ func (u *AddressUsecase) AddAddress(userID string, f *domain.AddAddressForm) err
 	return nil
 }
 
-func (u *AddressUsecase) UpdateAddress(id string, f *domain.UpdateAddressForm) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *AddressUsecase) UpdateAddress(ctx context.Context, id string, f *domain.UpdateAddressForm) error {
 	err := u.r.UpdateAddress(ctx, id, f)
 
 	if err != nil {
@@ -78,10 +64,7 @@ func (u *AddressUsecase) UpdateAddress(id string, f *domain.UpdateAddressForm) e
 	return nil
 }
 
-func (u *AddressUsecase) DeleteAddress(id string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (u *AddressUsecase) DeleteAddress(ctx context.Context, id string) error {
 	err := u.r.DeleteAddress(ctx, id)
 
 	if err != nil {

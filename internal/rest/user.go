@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -13,9 +14,9 @@ import (
 )
 
 type UserUsecase interface {
-	RegisterUser(f *domain.RegisterUserForm) (*domain.UserInfo, error)
-	LoginUser(f *domain.LoginUserForm) (*domain.UserInfo, error)
-	UpdateUser(id string, f *domain.UpdateUserForm) (*domain.UserInfo, error)
+	RegisterUser(ctx context.Context, f *domain.RegisterUserForm) (*domain.UserInfo, error)
+	LoginUser(ctx context.Context, f *domain.LoginUserForm) (*domain.UserInfo, error)
+	UpdateUser(ctx context.Context, id string, f *domain.UpdateUserForm) (*domain.UserInfo, error)
 }
 
 type UserHandler struct {
@@ -119,7 +120,8 @@ func (h *UserHandler) Register(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ves)
 	}
 
-	info, err := h.uc.RegisterUser(&body)
+	ctx := c.Request().Context()
+	info, err := h.uc.RegisterUser(ctx, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &domain.Response{
@@ -181,7 +183,8 @@ func (h *UserHandler) Login(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ves)
 	}
 
-	user, err := h.uc.LoginUser(&body)
+	ctx := c.Request().Context()
+	user, err := h.uc.LoginUser(ctx, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &domain.Response{
@@ -243,7 +246,8 @@ func (h *UserHandler) Update(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, ves)
 	}
 
-	info, err := h.uc.UpdateUser(id, &body)
+	ctx := c.Request().Context()
+	info, err := h.uc.UpdateUser(ctx, id, &body)
 
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, &domain.Response{

@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/goldenfealla/gear-manager/domain"
 )
@@ -30,10 +29,7 @@ func NewOrderUsercase(or OrderRepository, ur UserRepository) *OrderUsercase {
 	}
 }
 
-func (u *OrderUsercase) GetCart(userID string) (*domain.FullOrder, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
+func (u *OrderUsercase) GetCart(ctx context.Context, userID string) (*domain.FullOrder, error) {
 	isUserExisted, err := u.ur.CheckIDExist(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -56,10 +52,7 @@ func (u *OrderUsercase) GetCart(userID string) (*domain.FullOrder, error) {
 	return cart, nil
 }
 
-func (u *OrderUsercase) AddGearToCart(userID string, gearID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
+func (u *OrderUsercase) AddGearToCart(ctx context.Context, userID string, gearID string) error {
 	if !u.or.HasCart(ctx, userID) {
 		u.or.CreateCart(ctx, userID)
 	}
@@ -77,10 +70,7 @@ func (u *OrderUsercase) AddGearToCart(userID string, gearID string) error {
 	return nil
 }
 
-func (u *OrderUsercase) SetGearQuantityCart(userID string, gearID string, quantity int64) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
+func (u *OrderUsercase) SetGearQuantityCart(ctx context.Context, userID string, gearID string, quantity int64) error {
 	if quantity <= 0 {
 		return errors.New("quantity must be bigger than 0")
 	}
@@ -99,10 +89,7 @@ func (u *OrderUsercase) SetGearQuantityCart(userID string, gearID string, quanti
 
 }
 
-func (u *OrderUsercase) RemoveGearFromCart(userID string, gearID string) error {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
-	defer cancel()
-
+func (u *OrderUsercase) RemoveGearFromCart(ctx context.Context, userID string, gearID string) error {
 	if !u.or.HasCart(ctx, userID) {
 		u.or.CreateCart(ctx, userID)
 	}
@@ -120,11 +107,11 @@ func (u *OrderUsercase) RemoveGearFromCart(userID string, gearID string) error {
 	return nil
 }
 
-func (u *OrderUsercase) GetOrder(id string) (*domain.FullOrder, error) {
+func (u *OrderUsercase) GetOrder(ctx context.Context, id string) (*domain.FullOrder, error) {
 	return nil, nil
 
 }
 
-func (u *OrderUsercase) GetOrderList(userID string) ([]*domain.FullOrder, error) {
+func (u *OrderUsercase) GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error) {
 	return nil, nil
 }

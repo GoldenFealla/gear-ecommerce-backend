@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 
@@ -12,12 +13,12 @@ import (
 )
 
 type OrderUsecase interface {
-	GetCart(userID string) (*domain.FullOrder, error)
-	AddGearToCart(userID string, gearID string) error
-	SetGearQuantityCart(orderID string, gearID string, quantity int64) error
-	RemoveGearFromCart(userID string, gearID string) error
-	GetOrder(id string) (*domain.FullOrder, error)
-	GetOrderList(userID string) ([]*domain.FullOrder, error)
+	GetCart(ctx context.Context, userID string) (*domain.FullOrder, error)
+	AddGearToCart(ctx context.Context, userID string, gearID string) error
+	SetGearQuantityCart(ctx context.Context, orderID string, gearID string, quantity int64) error
+	RemoveGearFromCart(ctx context.Context, userID string, gearID string) error
+	GetOrder(ctx context.Context, d string) (*domain.FullOrder, error)
+	GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error)
 }
 
 type OrderHandler struct {
@@ -60,7 +61,8 @@ func (h *OrderHandler) GetCart(c echo.Context) error {
 		})
 	}
 
-	cart, err := h.ou.GetCart(user.ID.String())
+	ctx := c.Request().Context()
+	cart, err := h.ou.GetCart(ctx, user.ID.String())
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -92,7 +94,8 @@ func (h *OrderHandler) AddGearToCart(c echo.Context) error {
 
 	gearID := c.QueryParam("gear_id")
 
-	err := h.ou.AddGearToCart(user.ID.String(), gearID)
+	ctx := c.Request().Context()
+	err := h.ou.AddGearToCart(ctx, user.ID.String(), gearID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -137,7 +140,8 @@ func (h *OrderHandler) SetGearQuantityCart(c echo.Context) error {
 		})
 	}
 
-	err = h.ou.SetGearQuantityCart(user.ID.String(), gearID, quantity)
+	ctx := c.Request().Context()
+	err = h.ou.SetGearQuantityCart(ctx, user.ID.String(), gearID, quantity)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),
@@ -168,7 +172,8 @@ func (h *OrderHandler) RemoveGearFromCart(c echo.Context) error {
 
 	gearID := c.QueryParam("gear_id")
 
-	err := h.ou.RemoveGearFromCart(user.ID.String(), gearID)
+	ctx := c.Request().Context()
+	err := h.ou.RemoveGearFromCart(ctx, user.ID.String(), gearID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -192,7 +197,8 @@ func (h *OrderHandler) GetOrderList(c echo.Context) error {
 		})
 	}
 
-	result, err := h.ou.GetOrder(user.ID.String())
+	ctx := c.Request().Context()
+	result, err := h.ou.GetOrder(ctx, user.ID.String())
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
@@ -215,7 +221,8 @@ func (h *OrderHandler) GetOrder(c echo.Context) error {
 
 	id := c.QueryParams().Get("id")
 
-	result, err := h.ou.GetOrder(id)
+	ctx := c.Request().Context()
+	result, err := h.ou.GetOrder(ctx, id)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
