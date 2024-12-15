@@ -105,11 +105,10 @@ func (r *OrderRepository) GetFullCartByUserID(ctx context.Context, userID string
 	return fullOrder, nil
 }
 
-func (r *OrderRepository) GetFullCartByID(ctx context.Context, orderID string) (*domain.FullOrder, error) {
-	query := `SELECT * FROM "order" WHERE id=@id AND status=@status`
+func (r *OrderRepository) GetFullOrderByID(ctx context.Context, orderID string) (*domain.FullOrder, error) {
+	query := `SELECT * FROM "order" WHERE id=@id`
 	args := &pgx.NamedArgs{
-		"id":     orderID,
-		"status": domain.CART,
+		"id": orderID,
 	}
 
 	rows, err := r.Conn.Query(ctx, query, args)
@@ -133,6 +132,34 @@ func (r *OrderRepository) GetFullCartByID(ctx context.Context, orderID string) (
 	}
 
 	return fullOrder, nil
+}
+
+func (r *OrderRepository) GetFullOrderList(ctx context.Context, userID string, page int64, limit int64) ([]*domain.Order, error) {
+	query := `
+		SELECT * 
+		FROM "order" 
+		WHERE user_id=@user_id AND status<>@status
+		LIMIT @limit OFFSET @offset
+	`
+
+	args := &pgx.NamedArgs{
+		"user_id": userID,
+		"status":  domain.CART,
+		"limit":   limit,
+		"offset":  (page - 1) * limit,
+	}
+
+	rows, err := r.Conn.Query(ctx, query, args)
+	if err != nil {
+		return nil, err
+	}
+
+	orders, err := pgx.CollectRows(rows, pgx.RowToAddrOfStructByName[domain.Order])
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }
 
 func (r *OrderRepository) GetCartInfo(ctx context.Context, userID string) (*domain.Order, error) {

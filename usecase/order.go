@@ -10,7 +10,8 @@ import (
 type OrderRepository interface {
 	HasCart(ctx context.Context, userID string) bool
 	GetFullCartByUserID(ctx context.Context, userID string) (*domain.FullOrder, error)
-	GetFullCartByID(ctx context.Context, orderID string) (*domain.FullOrder, error)
+	GetFullOrderByID(ctx context.Context, orderID string) (*domain.FullOrder, error)
+	GetFullOrderList(ctx context.Context, userID string, page int64, limit int64) ([]*domain.Order, error)
 	GetCartInfo(ctx context.Context, userID string) (*domain.Order, error)
 	CreateCart(ctx context.Context, userID string) error
 	AddProductToCart(ctx context.Context, cart *domain.Order, gearID string) error
@@ -125,7 +126,7 @@ func (u *OrderUsercase) updateGearQuantityWorker(
 }
 
 func (u *OrderUsercase) PayCart(ctx context.Context, orderID string) error {
-	cart, err := u.or.GetFullCartByID(ctx, orderID)
+	cart, err := u.or.GetFullOrderByID(ctx, orderID)
 	if err != nil {
 		return err
 	}
@@ -161,9 +162,19 @@ func (u *OrderUsercase) PayCart(ctx context.Context, orderID string) error {
 }
 
 func (u *OrderUsercase) GetOrder(ctx context.Context, id string) (*domain.FullOrder, error) {
-	return nil, nil
+	order, err := u.or.GetFullOrderByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
 }
 
-func (u *OrderUsercase) GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error) {
-	return nil, nil
+func (u *OrderUsercase) GetOrderList(ctx context.Context, userID string, page int64, limit int64) ([]*domain.Order, error) {
+	orders, err := u.or.GetFullOrderList(ctx, userID, page, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }

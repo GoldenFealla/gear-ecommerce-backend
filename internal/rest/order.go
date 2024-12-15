@@ -19,7 +19,7 @@ type OrderUsecase interface {
 	RemoveGearFromCart(ctx context.Context, userID string, gearID string) error
 	PayCart(ctx context.Context, orderID string) error
 	GetOrder(ctx context.Context, d string) (*domain.FullOrder, error)
-	GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error)
+	GetOrderList(ctx context.Context, orderID string, page int64, limit int64) ([]*domain.Order, error)
 }
 
 type OrderHandler struct {
@@ -222,8 +222,35 @@ func (h *OrderHandler) GetOrderList(c echo.Context) error {
 		})
 	}
 
+	pPage := c.QueryParams().Get("page")
+	pLimit := c.QueryParams().Get("limit")
+
+	var err error
+	var page int64 = 1
+	var limit int64 = 10
+
+	if pPage != "" {
+		page, err = strconv.ParseInt(pPage, 10, 64)
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, &domain.Response{
+				Message: err.Error(),
+			})
+		}
+	}
+
+	if pLimit != "" {
+		limit, err = strconv.ParseInt(pLimit, 10, 64)
+
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, &domain.Response{
+				Message: err.Error(),
+			})
+		}
+	}
+
 	ctx := c.Request().Context()
-	result, err := h.ou.GetOrder(ctx, user.ID.String())
+	result, err := h.ou.GetOrderList(ctx, user.ID.String(), page, limit)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
