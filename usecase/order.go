@@ -9,23 +9,27 @@ import (
 
 type OrderRepository interface {
 	HasCart(ctx context.Context, userID string) bool
-	GetFullCart(ctx context.Context, userID string) (*domain.FullOrder, error)
+	GetFullCartByUserID(ctx context.Context, userID string) (*domain.FullOrder, error)
+	GetFullCartByID(ctx context.Context, orderID string) (*domain.FullOrder, error)
 	GetCartInfo(ctx context.Context, userID string) (*domain.Order, error)
 	CreateCart(ctx context.Context, userID string) error
 	AddProductToCart(ctx context.Context, cart *domain.Order, gearID string) error
 	SetGearQuantityCart(ctx context.Context, cart *domain.Order, gearID string, quantity int64) error
 	RemoveProductToCart(ctx context.Context, cart *domain.Order, gearID string) error
+	UpdateOrderStatus(ctx context.Context, cartID string, status domain.OrderStatus) error
 }
 
 type OrderUsercase struct {
 	or OrderRepository
 	ur UserRepository
+	gr GearRepository
 }
 
-func NewOrderUsercase(or OrderRepository, ur UserRepository) *OrderUsercase {
+func NewOrderUsercase(or OrderRepository, ur UserRepository, gr GearRepository) *OrderUsercase {
 	return &OrderUsercase{
 		or,
 		ur,
+		gr,
 	}
 }
 
@@ -43,7 +47,7 @@ func (u *OrderUsercase) GetCart(ctx context.Context, userID string) (*domain.Ful
 		u.or.CreateCart(ctx, userID)
 	}
 
-	cart, err := u.or.GetFullCart(ctx, userID)
+	cart, err := u.or.GetFullCartByUserID(ctx, userID)
 
 	if err != nil {
 		return nil, err
@@ -107,9 +111,42 @@ func (u *OrderUsercase) RemoveGearFromCart(ctx context.Context, userID string, g
 	return nil
 }
 
+func (u *OrderUsercase) updateGearQuantityWorker(ctx context.Context, ordergear <-chan *domain.OrderGear) {
+	for og := range ordergear {
+		r := og.Gear.Quantity - og.Quantity
+		u.gr.UpdateGearQuantity(ctx, og.Gear.ID.String(), r)
+	}
+}
+
+func (u *OrderUsercase) PayCart(ctx context.Context, orderID string) error {
+	cart, err := u.or.GetFullCartByID(ctx, orderID)
+	if err != nil {
+		return err
+	}
+
+	err = u.or.UpdateOrderStatus(ctx, cart.Order.ID.String(), domain.PAID)
+	if err != nil {
+		return err
+	}
+
+	numOfOrderGear := len(cart.OrderGear)
+	orderGearsChan := make(chan *domain.OrderGear, numOfOrderGear)
+
+	// 4 worker
+	for w := 1; w <= 3; w++ {
+		go u.updateGearQuantityWorker(ctx, orderGearsChan)
+	}
+
+	for j := 0; j < numOfOrderGear; j++ {
+		orderGearsChan <- cart.OrderGear[j]
+	}
+	close(orderGearsChan)
+
+	return nil
+}
+
 func (u *OrderUsercase) GetOrder(ctx context.Context, id string) (*domain.FullOrder, error) {
 	return nil, nil
-
 }
 
 func (u *OrderUsercase) GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error) {

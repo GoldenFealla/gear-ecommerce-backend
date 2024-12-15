@@ -116,7 +116,7 @@ func main() {
 	gu := usecase.NewGearUsecase(gr)
 	uu := usecase.NewUserUsecase(ur)
 	au := usecase.NewAddressUsecase(ar)
-	ou := usecase.NewOrderUsercase(or, ur)
+	ou := usecase.NewOrderUsercase(or, ur, gr)
 
 	// Build Handler
 	rest.NewUserHandler(e, uu, v)

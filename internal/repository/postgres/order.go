@@ -75,11 +75,41 @@ func (r *OrderRepository) getOrderGearList(ctx context.Context, orderID uuid.UUI
 	})
 }
 
-func (r *OrderRepository) GetFullCart(ctx context.Context, userID string) (*domain.FullOrder, error) {
+func (r *OrderRepository) GetFullCartByUserID(ctx context.Context, userID string) (*domain.FullOrder, error) {
 	query := `SELECT * FROM "order" WHERE user_id=@user_id AND status=@status`
 	args := &pgx.NamedArgs{
 		"user_id": userID,
 		"status":  domain.CART,
+	}
+
+	rows, err := r.Conn.Query(ctx, query, args)
+	if err != nil {
+		return nil, err
+	}
+
+	order, err := pgx.CollectOneRow(rows, pgx.RowToAddrOfStructByName[domain.Order])
+	if err != nil {
+		return nil, err
+	}
+
+	orderGear, err := r.getOrderGearList(ctx, order.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	fullOrder := &domain.FullOrder{
+		Order:     order,
+		OrderGear: orderGear,
+	}
+
+	return fullOrder, nil
+}
+
+func (r *OrderRepository) GetFullCartByID(ctx context.Context, orderID string) (*domain.FullOrder, error) {
+	query := `SELECT * FROM "order" WHERE id=@id AND status=@status`
+	args := &pgx.NamedArgs{
+		"id":     orderID,
+		"status": domain.CART,
 	}
 
 	rows, err := r.Conn.Query(ctx, query, args)
@@ -226,6 +256,31 @@ func (r *OrderRepository) RemoveProductToCart(ctx context.Context, cart *domain.
 		"gear_id":  gearUUID,
 		"quantity": 1,
 	}
+	_, err = r.Conn.Exec(ctx, query, args)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *OrderRepository) UpdateOrderStatus(ctx context.Context, orderID string, status domain.OrderStatus) error {
+	err := uuid.Validate(orderID)
+	if err != nil {
+		return errors.New("invalid uuid")
+	}
+
+	query := `
+		UPDATE "order"
+		SET status=@status
+		WHERE id=@id
+	`
+
+	args := pgx.NamedArgs{
+		"id":     orderID,
+		"status": status,
+	}
+
 	_, err = r.Conn.Exec(ctx, query, args)
 	if err != nil {
 		return err

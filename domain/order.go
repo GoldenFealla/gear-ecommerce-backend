@@ -8,7 +8,7 @@ type OrderStatus string
 
 const (
 	CART       OrderStatus = "CART"
-	VERIFIED   OrderStatus = "VERIFIED"
+	PAID       OrderStatus = "PAID"
 	DELIVERING OrderStatus = "DELIVERING"
 	DONE       OrderStatus = "DONE"
 )

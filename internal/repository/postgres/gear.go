@@ -329,6 +329,26 @@ func (r *GearRepository) UpdateGear(ctx context.Context, id string, g *domain.Up
 	return nil
 }
 
+func (r *GearRepository) UpdateGearQuantity(ctx context.Context, gearID string, quantity int64) error {
+	query := `
+		UPDATE gear
+		SET quantity=@quantity
+		WHERE @id=id
+	`
+
+	args := pgx.NamedArgs{
+		"id":       gearID,
+		"quantity": quantity,
+	}
+
+	_, err := r.Conn.Exec(ctx, query, args)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (r *GearRepository) DeleteGear(ctx context.Context, id string) error {
 	query := `
 		DELETE FROM gear

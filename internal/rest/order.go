@@ -17,6 +17,7 @@ type OrderUsecase interface {
 	AddGearToCart(ctx context.Context, userID string, gearID string) error
 	SetGearQuantityCart(ctx context.Context, orderID string, gearID string, quantity int64) error
 	RemoveGearFromCart(ctx context.Context, userID string, gearID string) error
+	PayCart(ctx context.Context, orderID string) error
 	GetOrder(ctx context.Context, d string) (*domain.FullOrder, error)
 	GetOrderList(ctx context.Context, userID string) ([]*domain.FullOrder, error)
 }
@@ -42,6 +43,7 @@ func NewOrderHandler(e *echo.Echo, ou OrderUsecase, v *validator.Validate) {
 	group.GET("", handler.GetOrder)
 	group.GET("/list", handler.GetOrderList)
 	group.GET("/cart", handler.GetCart)
+	group.PUT("/pay", handler.PayCart)
 	group.PUT("/add-to-cart", handler.AddGearToCart)
 	group.PUT("/set-quantity", handler.SetGearQuantityCart)
 	group.PUT("/remove-from-cart", handler.RemoveGearFromCart)
@@ -175,6 +177,29 @@ func (h *OrderHandler) RemoveGearFromCart(c echo.Context) error {
 	ctx := c.Request().Context()
 	err := h.ou.RemoveGearFromCart(ctx, user.ID.String(), gearID)
 
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, &domain.Response{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, &domain.Response{
+		Message: "OK",
+		Data:    nil,
+	})
+}
+
+func (h *OrderHandler) PayCart(c echo.Context) error {
+	if hasID := c.QueryParams().Has("id"); !hasID {
+		return c.JSON(http.StatusBadRequest, &domain.Response{
+			Message: "query param 'id' is required",
+		})
+	}
+
+	orderID := c.QueryParam("id")
+
+	ctx := c.Request().Context()
+	err := h.ou.PayCart(ctx, orderID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, &domain.Response{
 			Message: err.Error(),

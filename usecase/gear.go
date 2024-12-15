@@ -14,6 +14,7 @@ type GearRepository interface {
 	GetGearByID(ctx context.Context, id string) (*domain.Gear, error)
 	AddGear(ctx context.Context, g *domain.AddGearForm) error
 	UpdateGear(ctx context.Context, id string, g *domain.UpdateGearForm) error
+	UpdateGearQuantity(ctx context.Context, id string, quantity int64) error
 	DeleteGear(ctx context.Context, id string) error
 }
 
